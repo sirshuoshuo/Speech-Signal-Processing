@@ -82,11 +82,11 @@ title('blackman'), ylabel('dB'), xlim([0, 0.5])
 
 - **Result and Analysis:**
     + Time plot
-
+![P1_1](./assets/P1_1.png)
 In this picture, five different windows are shown on the same figure.
 
     + Log magnitude plot
-
+![P1_2](./assets/P1_2.png)
 As we can see, different windows have different frequency responses. The **rectangular window** has the worst performance in frequency domain, while the **hamming window** has the best performance.
 
 ---
@@ -176,12 +176,18 @@ Then the STA function is called to return the results.
 
 
 
-
-
 - **Result and Analysis:**
+    + full time waveform
+![P2_1](./assets/P2_1.png)
 
+    + short time energy
+![P2_2](./assets/P2_2.png)
 
+    + short time magnitude
+![P2_3](./assets/P2_3.png)
 
+    + short time zero-crossing
+![P2_4](./assets/P2_4.png)
 
 
 ---
