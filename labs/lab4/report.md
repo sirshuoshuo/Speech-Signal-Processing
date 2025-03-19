@@ -114,16 +114,30 @@ As we can see, different windows have different frequency responses. The **recta
 
 - **Result and Analysis:**
 
+![image-20250319231642592](./assets/image-20250319231642592.png)
+
+
+
 ---
 ## Probelm 3
-- Problem description:
+- **Problem description:**
+
+We are required to show the effects of window duration on the short-time analysis of energy, magnitude, and zero crossings. Specifically, we will use frame lengths of 51, 101, 201, 401 samples, and use a rectangular window. We will continue to utilize the `STA` function we wrote in problem 2.
 
 
-- Key code segment:
+- **Key code segment:**
 
-   
+
+
+
+ 
+
 
 - **Result and Aanalysis:**
+
+![image-20250319231517754](./assets/image-20250319231517754.png)
+
+
 
 ---
 
