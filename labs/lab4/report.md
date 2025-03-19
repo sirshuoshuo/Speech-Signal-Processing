@@ -26,58 +26,60 @@ The narrower the main lobe width, the higher the frequency resolution. And the l
 
 *1.* A function `window_plot(L)` was witten. The function will make sure the input iwindow length is an odd number and plot the five windows in time domain.
 
-    ```matlab
-    [y, fs] = audioread('s5.wav');
-    L = 256;   % 32ms per frame
-    win = hamming(L);   % 尚未补零
-    R = 128;   % 50% of window shift
-    short_time_analysis(y, fs, R, win, L);
-    ```
+```matlab
+[y, fs] = audioread('s5.wav');
+L = 256;   % 32ms per frame
+win = hamming(L);   % 尚未补零
+R = 128;   % 50% of window shift
+short_time_analysis(y, fs, R, win, L);
+```
 
 *2.* As for frequency response, the first step is to do a zero-padding to make the result more precise. And in step two we convert the y-axis to dB(log magnitude) to better reveal the characteristics of the window.
 
-    ```matlab
-    % log form
-    W1 = fft(w1, L*8);   % zero-padding
-    W2 = fft(w2, L*8);
-    W3 = fft(w3, L*8);
-    W4 = fft(w4, L*8);
-    W5 = fft(w5, L*8);
+```matlab
 
-    % magnitude only
-    W1_abs = abs(fftshift(W1));
-    W2_abs = abs(fftshift(W2));
-    W3_abs = abs(fftshift(W3));
-    W4_abs = abs(fftshift(W4));
-    W5_abs = abs(fftshift(W5));
+% log form
+W1 = fft(w1, L*8);   % zero-padding
+W2 = fft(w2, L*8);
+W3 = fft(w3, L*8);
+W4 = fft(w4, L*8);
+W5 = fft(w5, L*8);
 
-    f = (-L*4:L*4-1) ./ (L*8);
+% magnitude only
+W1_abs = abs(fftshift(W1));
+W2_abs = abs(fftshift(W2));
+W3_abs = abs(fftshift(W3));
+W4_abs = abs(fftshift(W4));
+W5_abs = abs(fftshift(W5));
 
-    W1_db = 20*log10(W1_abs/max(W1_abs));
-    W2_db = 20*log10(W2_abs/max(W2_abs));
-    W3_db = 20*log10(W3_abs/max(W3_abs));
-    W4_db = 20*log10(W4_abs/max(W4_abs));
-    W5_db = 20*log10(W5_abs/max(W5_abs));
+f = (-L*4:L*4-1) ./ (L*8);
 
-    figure;
+W1_db = 20*log10(W1_abs/max(W1_abs));
+W2_db = 20*log10(W2_abs/max(W2_abs));
+W3_db = 20*log10(W3_abs/max(W3_abs));
+W4_db = 20*log10(W4_abs/max(W4_abs));
+W5_db = 20*log10(W5_abs/max(W5_abs));
 
-    subplot(321)
-    plot(f, W1_db), ylabel('dB'), xlim([0, 0.5])
-    title('rect')
-    subplot(322)
-    plot(f, W2_db), ylabel('dB'), xlim([0, 0.5])
-    title('triang')
-    subplot(323)
-    plot(f, W3_db), ylabel('dB'), xlim([0, 0.5])
-    title('hann')
-    subplot(324)
-    plot(f, W4_db), ylabel('dB'), xlim([0, 0.5])
-    title('hamming')
-    subplot(325)
-    plot(f, W5_db)
-    title('blackman'), ylabel('dB'), xlim([0, 0.5])
-    ```
-    
+figure;
+
+subplot(321)
+plot(f, W1_db), ylabel('dB'), xlim([0, 0.5])
+title('rect')
+subplot(322)
+plot(f, W2_db), ylabel('dB'), xlim([0, 0.5])
+title('triang')
+subplot(323)
+plot(f, W3_db), ylabel('dB'), xlim([0, 0.5])
+title('hann')
+subplot(324)
+plot(f, W4_db), ylabel('dB'), xlim([0, 0.5])
+title('hamming')
+subplot(325)
+plot(f, W5_db)
+title('blackman'), ylabel('dB'), xlim([0, 0.5])
+
+```
+
 - **Result and Analysis:**
     + Time plot
 
@@ -90,10 +92,20 @@ As we can see, different windows have different frequency responses. The **recta
 ---
 
 ## Problem 2
-- **Problem description:**
+- **Problem description:** 
+
+  In this problem, we are required to write a program to analyze a speech file and plot the following measurements: speech waveform, short-time energy, short-time magnitude, and the short-time zero-crossing.
+
+  Appropriate window size, window shifts, and window type should be selected.
+
+  Also, the frquency scale should be normalized.
 
 
-- **Solution and process**
+- **Solution and process**:
+
+1. MATLAB provides the `buffer` function which we can use to split the original waveform into frames. The frame length and the frame shift can both be configured. 
+2. We can design a function called `STA` that returns 4 vectors which contain the 4 specified results. 
+3. In the outer `plot_STA` script, we call the function and use its outputs to visualize the results.
 
 
 - **Key code segment:**
@@ -101,7 +113,6 @@ As we can see, different windows have different frequency responses. The **recta
 
 
 - **Result and Analysis:**
-    
 
 ---
 ## Probelm 3
