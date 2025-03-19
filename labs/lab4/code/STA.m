@@ -19,17 +19,17 @@ function [waveform, energy, magnitude, zero_crossing, time_axis] = STA(y, fs, R,
     for i = 1:num_frames
         frame = frames(:, i); % 取出一帧
 
-        % 加窗
-        frame = frame .* win;
+        % % 加窗
+        % frame = frame .* win;
 
         % 计算短时能量
-        energy(i) = sum(frame.^2);
+        energy(i) = sum(frame.^2 .* win);
 
         % 计算短时幅度
-        magnitude(i) = sum(abs(frame));
+        magnitude(i) = sum(abs(frame).* win);
 
         % 计算短时过零率
-        zero_crossing(i) = sum(abs(diff(frame > 0))) / L;
+        zero_crossing(i) = sum(abs(diff(frame > 0)) .* win(1:L-1) ) / (L-1);
     end
 
     time_axis = (0:num_frames-1) * (R/fs);

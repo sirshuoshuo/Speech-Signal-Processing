@@ -1,5 +1,5 @@
 [aud, fs] = audioread('s5.wav');
-L = 256;
+L = 257;
 R = 128;
 
 win = rectwin(L);
@@ -10,7 +10,7 @@ win_hamming = hamming(L);
 [waveform_hamming, energy_hamming, magnitude_hamming, zero_crossing_hamming, time_hamming] = STA(aud, fs, R, win_hamming);
 
 figure;
-sgtitle('Short-Time Analysis, with Rectangular Window, L=256, R=128');
+sgtitle('Short-Time Analysis, with Rectangular Window, L=257, R=128');
 subplot(4,1,1);
 plot(waveform);
 title('Waveform');
@@ -36,7 +36,7 @@ xlabel('Frame');
 ylabel('Rate');
 
 figure;
-sgtitle('Short-Time Analysis, with Hanning Window, L=256, R=128');
+sgtitle('Short-Time Analysis, with Hanning Window, L=257, R=128');
 subplot(4,1,1);
 plot(waveform_hanning);
 title('Waveform');
@@ -62,7 +62,7 @@ xlabel('Frame');
 ylabel('Rate');
 
 figure;
-sgtitle('Short-Time Analysis, with Hamming Window, L=256, R=128');
+sgtitle('Short-Time Analysis, with Hamming Window, L=257, R=128');
 subplot(4,1,1);
 plot(waveform_hamming);
 title('Waveform');

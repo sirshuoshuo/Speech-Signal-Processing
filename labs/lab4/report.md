@@ -110,11 +110,77 @@ As we can see, different windows have different frequency responses. The **recta
 
 - **Key code segment:**
 
+```matlab
+function [waveform, energy, magnitude, zero_crossing, time_axis] = STA(y, fs, R, win)
+
+    % 输入参数检查
+    L = length(win); % 窗口长度（帧长）
+    N = length(y);   % 语音信号总长度
+
+    % 初始化输出
+    waveform = y; % 原始波形
+
+    % 分帧并加窗处理（使用nodelay避免初始延迟）
+    frames = buffer(y, L, L-R, 'nodelay');  % 分帧，维度 [L x num_frames]
+    num_frames = size(frames, 2);           % 总帧数
+
+    % 预分配
+    energy = zeros(1, num_frames);          % 短时能量
+    magnitude = zeros(1, num_frames);       % 短时幅度  
+    zero_crossing = zeros(1, num_frames);   % 短时过零率
+
+    for i = 1:num_frames
+        frame = frames(:, i); % 取出一帧
+
+        % % 加窗
+        % frame = frame .* win;
+
+        % 计算短时能量
+        energy(i) = sum(frame.^2 .* win);
+
+        % 计算短时幅度
+        magnitude(i) = sum(abs(frame).* win);
+
+        % 计算短时过零率
+        zero_crossing(i) = sum(abs(diff(frame > 0)) .* win(1:L-1) ) / (L-1);
+    end
+
+    time_axis = (0:num_frames-1) * (R/fs);
+
+end
+
+```
+
+The data flow within the function aligns with the provided system plot. 
+
+<img src="./assets/image-20250319234141737.png" alt="image-20250319234141737" style="zoom:50%;" />
+
+We start at the $x[n]$ values, conducts corresponding calculations (i.e. taking absolute value, squaring) on selected frames of the signal, and pass them through windows. 
+
+
+
+```matlab
+[aud, fs] = audioread('s5.wav');
+L = 257;
+R = 128;
+
+win = rectwin(L);
+win_hanning = hann(L);
+win_hamming = hamming(L);
+[waveform, energy, magnitude, zero_crossing, time] = STA(aud, fs, R, win);
+[waveform_hanning, energy_hanning, magnitude_hanning, zero_crossing_hanning, time_hanning] = STA(aud, fs, R, win_hanning);
+[waveform_hamming, energy_hamming, magnitude_hamming, zero_crossing_hamming, time_hamming] = STA(aud, fs, R, win_hamming);
+```
+
+Then the STA function is called to return the results. 
+
+
+
 
 
 - **Result and Analysis:**
 
-![image-20250319231642592](./assets/image-20250319231642592.png)
+
 
 
 
@@ -128,16 +194,43 @@ We are required to show the effects of window duration on the short-time analysi
 - **Key code segment:**
 
 
+```matlab
+L = [51, 101, 201, 401];
+[aud, fs] = audioread('test_16k.wav');
 
+energy_results = cell(1, length(L));
+magnitude_results = cell(1, length(L));
+zero_crossing_results = cell(1, length(L));
+time_results = cell(1, length(L));
+```
 
- 
+ We store corresponding results in cell arrays. The characteristics of cell arrays enable us to store vectors with different sizes together. 
+
+```matlab
+for i = 1:length(L)
+    L_i = L(i);
+    R = floor(L_i / 2); % to make sure R is an integer
+    win = rectwin(L_i);
+    [waveform, energy, magnitude, zero_crossing, time] = STA(aud, fs, R, win);
+
+    energy_results{i} = energy;
+    magnitude_results{i} = magnitude;
+    zero_crossing_results{i} = zero_crossing;
+    time_results{i} = time;    
+end
+```
+
+For each L number, we call the STA function and store its return values into corresponding positions of the cell arrays.
 
 
 - **Result and Aanalysis:**
 
 ![image-20250319231517754](./assets/image-20250319231517754.png)
 
-
+1. The **shape of curves are consistent** throughout the changes of L. 
+2. As shown in the magnitude and the energy plots, windows with **greater length** tend to have **bigger values** because they naturally include more signals. 
+3. However windows with greater lengths **act like low-pass filters** and will lose high-frequency changes when compared with windows with smaller sizes.
+4. In the ZC plot, because the calculating method takes average values across each window, **the magnitude of different curves remain consistent.** Also we can observe that **windows with greater length filters out high-frequency changes**, while windows with shorter lengths retain them. 
 
 ---
 
