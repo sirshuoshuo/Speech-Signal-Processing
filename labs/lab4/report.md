@@ -82,12 +82,11 @@ title('blackman'), ylabel('dB'), xlim([0, 0.5])
 
 - **Result and Analysis:**
     + Time plot
-![P1_1](./assets/P1_1.png)
-In this picture, five different windows are shown on the same figure.
-
-    + Log magnitude plot
-![P1_2](./assets/P1_2.png)
-As we can see, different windows have different frequency responses. The **rectangular window** has the worst performance in frequency domain, while the **hamming window** has the best performance.
+      ![P1_1](./assets/P1_1.png)
+      In this picture, five different windows are shown on the same figure.
+      - Log magnitude plot
+        ![P1_2](./assets/P1_2.png)
+        As we can see, different windows have different frequency responses. The **rectangular window** has the worst performance in frequency domain, while the **hamming window** has the best performance.
 
 ---
 
@@ -131,18 +130,16 @@ function [waveform, energy, magnitude, zero_crossing, time_axis] = STA(y, fs, R,
 
     for i = 1:num_frames
         frame = frames(:, i); % 取出一帧
-
-        % % 加窗
-        % frame = frame .* win;
+        frame = frame .* win;
 
         % 计算短时能量
-        energy(i) = sum(frame.^2 .* win);
+        energy(i) = sum(frame.^2);
 
         % 计算短时幅度
-        magnitude(i) = sum(abs(frame).* win);
+        magnitude(i) = sum(abs(frame));
 
         % 计算短时过零率
-        zero_crossing(i) = sum(abs(diff(frame > 0)) .* win(1:L-1) ) / (L-1);
+        zero_crossing(i) = sum(abs(diff(frame > 0)) / (L-1);
     end
 
     time_axis = (0:num_frames-1) * (R/fs);
@@ -155,9 +152,7 @@ The data flow within the function aligns with the provided system plot.
 
 <img src="./assets/image-20250319234141737.png" alt="image-20250319234141737" style="zoom:50%;" />
 
-We start at the $x[n]$ values, conducts corresponding calculations (i.e. taking absolute value, squaring) on selected frames of the signal, and pass them through windows. 
-
-
+We start at the $x[n]$ values, pass them through windows, and conducts corresponding calculations (i.e. taking absolute value, squaring) on selected frames of the signal. 
 
 ```matlab
 [aud, fs] = audioread('s5.wav');
@@ -177,21 +172,26 @@ Then the STA function is called to return the results.
 
 
 - **Result and Analysis:**
-    + full time waveform
-![P2_1](./assets/P2_1.png)
+    
+    <img src="./assets/image-20250320110017355.png" alt="image-20250320110017355" style="zoom:50%;" />
 
-    + short time energy
-![P2_2](./assets/P2_2.png)
+    <img src="./assets/image-20250320110038375.png" alt="image-20250320110038375" style="zoom:50%;" />
 
-    + short time magnitude
-![P2_3](./assets/P2_3.png)
+    <img src="./assets/image-20250320110108435.png" alt="image-20250320110108435" style="zoom:50%;" />
+    
+    - Observations
 
-    + short time zero-crossing
-![P2_4](./assets/P2_4.png)
+      - **Different window types do not change zero-crossing rate**, because they do not alter the sign of any sample.
+      - Magnitude and Energy analysis are alike in shape, however the **energy analhysis are more spiky.**
+      - The **magnitude analysis result overall have smaller values** than energy analysis because most values in the original waveform are smaller than 1 and the squaring operation suppresses the values. 
+    
+      <img src="./assets/image-20250320110921000.png" alt="image-20250320110921000" style="zoom:33%;" />
+    
+      
 
 
 ---
-## Probelm 3
+## Problem 3
 - **Problem description:**
 
 We are required to show the effects of window duration on the short-time analysis of energy, magnitude, and zero crossings. Specifically, we will use frame lengths of 51, 101, 201, 401 samples, and use a rectangular window. We will continue to utilize the `STA` function we wrote in problem 2.
@@ -241,4 +241,16 @@ For each L number, we call the STA function and store its return values into cor
 ---
 
 ## Conclusion
+
+Several short-time methods can be utilized to analyze the patterns of speech signals, including short-time energy, short-time magnitude, and short-time zero crossing rate. 
+
+- **Short-Time Energy** measures the amplitude variation within a segmented portion of a speech signal, computed by summing the squared amplitudes of samples in a window. 
+- **Short-Time Magnitude** simplifies energy calculation by summing the absolute values of signal amplitudes within a window instead of squaring them. It is mostly alike the short-time energy analysis, but it is less sensitive to sudden amplitude spikes than short-time energy.
+- **Short-Time Zero Crossing Rate (ZCR)** quantifies the rate at which the signal crosses the zero amplitude axis within a window. High ZCR values correspond to **high-frequency components**, such as unvoiced fricatives (/f/, /sh/) or noise, while low ZCR values indicate low-frequency voiced sounds (e.g., vowels).
+
+Different windows functions can affect the result of the analysis:
+
+- Windows with larger lengths would result in bigger amplitude, however will act as lowpass filter and lose high-frequency components in signals. 
+- Windows with smaller lengths would result in smaller amplitude, however retains high frequency components better.
+- Window type do not change zero-crossing rate. However window length would, in a similar manner as previously mentioned.
 
