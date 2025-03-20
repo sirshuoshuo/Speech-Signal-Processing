@@ -4,7 +4,7 @@
 
 ---
 ## Introduction
-In this lab course, we mainly focus on the **short-time-analysis** of speech signal. Which include **short time energy**, **short time zero-crossing** and **short time magnitude**. Moreover, in order to derive a short time speech segment(frame), different **window functions** are tested and used. The result shows that imparity in window type and window parameters functions differently in short time analysis relsults. 
+In this lab course, we mainly focus on the **short-time-analysis** of speech signal. Which include **short time energy**, **short time zero-crossing-rate** and **short time magnitude**. Moreover, in order to derive a short time speech segment(frame) with smooth edge, different **window functions** are tested and used. The result shows that imparity in window type and window parameters function differently in short time analysis relsults. 
 
 ---
 
@@ -84,7 +84,7 @@ title('blackman'), ylabel('dB'), xlim([0, 0.5])
     + Time plot
       ![P1_1](./assets/P1_1.png)
       In this picture, five different windows are shown on the same figure.
-      - Log magnitude plot
+    + Log magnitude plot
         ![P1_2](./assets/P1_2.png)
         As we can see, different windows have different frequency responses. The **rectangular window** has the worst performance in frequency domain, while the **hamming window** has the best performance.
 
