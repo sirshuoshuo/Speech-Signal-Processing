@@ -109,6 +109,7 @@ title('blackman'), ylabel('dB'), xlim([0, 0.5])
 
 - **Key code segment:**
 
+>note: In this problem and problem 3, we use zero-crossing rate instead magnitude of zero-crossing(#zero-crossing/fram_length) since zero-crossing rate can better reveal the differences between vowels and consonants. 
 ```matlab
 function [waveform, energy, magnitude, zero_crossing, time_axis] = STA(y, fs, R, win)
 
