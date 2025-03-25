@@ -86,102 +86,86 @@ Write a MATLAB program to perform short-time spectral analysis on a single frame
 ## Problem 2
 - **Problem description:** 
 
-  In this problem, we are required to write a program to analyze a speech file and plot the following measurements: speech waveform, short-time energy, short-time magnitude, and the short-time zero-crossing.
+  In this problem, we are required to write a program to perform and compare the results of multiple short-time analyses. In this problem, the effects of different window types  (Hamming, Rectangular) and window length (5, 10, 20, 40, in ms ) are discussed. 
 
-  Appropriate window size, window shifts, and window type should be selected.
-
-  Also, the frquency scale should be normalized.
 
 
 - **Solution and process**:
 
-1. MATLAB provides the `buffer` function which we can use to split the original waveform into frames. The frame length and the frame shift can both be configured. 
-2. We can design a function called `STA` that returns 4 vectors which contain the 4 specified results. 
-3. In the outer `plot_STA` script, we call the function and use its outputs to visualize the results.
+1. This task requires us to plot different data lines on the same graph, so we would first initialize two figures and reuse them for the drawing later. Also we draw the constant elements, including the original waveform and the labels. 
+2. The main procedure will be largely the same as problem 1. We segment the original waveform, do STFT analysis, draw corresponding plots, and add legend to each subplot. 
+3. In the outer script, we call the function to draw the plots. 
 
 
 - **Key code segment:**
 
->note: In this problem and problem 3, we use zero-crossing rate instead magnitude of zero-crossing(#zero-crossing/fram_length) since zero-crossing rate can better reveal the differences between vowels and consonants. 
-```matlab
-function [waveform, energy, magnitude, zero_crossing, time_axis] = STA(y, fs, R, win)
-
-    % 输入参数检查
-    L = length(win); % 窗口长度（帧长）
-    N = length(y);   % 语音信号总长度
-
-    % 初始化输出
-    waveform = y; % 原始波形
-
-    % 分帧并加窗处理（使用nodelay避免初始延迟）
-    frames = buffer(y, L, L-R, 'nodelay');  % 分帧，维度 [L x num_frames]
-    num_frames = size(frames, 2);           % 总帧数
-
-    % 预分配
-    energy = zeros(1, num_frames);          % 短时能量
-    magnitude = zeros(1, num_frames);       % 短时幅度  
-    zero_crossing = zeros(1, num_frames);   % 短时过零率
-
-    for i = 1:num_frames
-        frame = frames(:, i); % 取出一帧
-        frame = frame .* win;
-
-        % 计算短时能量
-        energy(i) = sum(frame.^2);
-
-        % 计算短时幅度
-        magnitude(i) = sum(abs(frame));
-
-        % 计算短时过零率
-        zero_crossing(i) = sum(abs(diff(frame > 0)) / (L-1);
-    end
-
-    time_axis = (0:num_frames-1) * (R/fs);
-
-end
-
-```
-
-The data flow within the function aligns with the provided system plot. 
-
-<img src="./assets/image-20250319234141737.png" alt="image-20250319234141737" style="zoom:50%;" />
-
-We start at the $x[n]$ values, pass them through windows, and conducts corresponding calculations (i.e. taking absolute value, squaring) on selected frames of the signal. 
-
-```matlab
-[aud, fs] = audioread('s5.wav');
-L = 257;
-R = 128;
-
-win = rectwin(L);
-win_hanning = hann(L);
-win_hamming = hamming(L);
-[waveform, energy, magnitude, zero_crossing, time] = STA(aud, fs, R, win);
-[waveform_hanning, energy_hanning, magnitude_hanning, zero_crossing_hanning, time_hanning] = STA(aud, fs, R, win_hanning);
-[waveform_hamming, energy_hamming, magnitude_hamming, zero_crossing_hamming, time_hamming] = STA(aud, fs, R, win_hamming);
-```
-
-Then the STA function is called to return the results. 
-
+>1. We first read the audio and initiate all figures. Also, original waveform, which should be drawn only once, is also covered in this part. 
+>
+>   ```matlab
+>   [aud, fs] = audioread(filename);
+>   
+>       colors = lines(num);
+>   
+>       figure(1)
+>       sgtitle('Short-Time Analysis, with Hamming Window, Variable Frame Lengths');
+>       subplot(2,2,1);
+>       plot(aud);
+>       title('Original waveform');
+>       xlabel('Time (samples)');
+>   	...
+>   ```
+>
+>2. Then in a for loop dependent of the parameter `num`, we calculate the STFTs of the signals with corresponding lengths as stored in the `framelengths` vector.
+>
+>   ```matlab
+>   for idx = 1:num
+>           framelength = framelengths(idx);
+>   
+>           framelength_smp = framelength * fs / 1000;
+>   
+>           hamm_win = hamming(framelength_smp);
+>           aud_hamm = aud(startsmp:startsmp+framelength_smp-1) .* hamm_win;
+>           rect_win = rectwin(framelength_smp);
+>           aud_rect = aud(startsmp:startsmp+framelength_smp-1) .* rect_win;
+>   
+>           nfft = 2^nextpow2(framelength_smp);
+>           STFT_hamm = abs(fft(aud_hamm, nfft));
+>           STFT_rect = abs(fft(aud_rect, nfft));
+>   
+>           freq = 0:fs/nfft:fs/2;
+>   ```
+>
+>3. Then we plot the overlapping figures.
+>
+>   ```matlab
+>           figure(1);
+>           subplot(2,2,2);
+>           plot(hamm_win, "Color", colors(idx, :), 'DisplayName', sprintf("%d", framelength));
+>           hold on;
+>           plot(aud_hamm, "Color", colors(idx, :), 'HandleVisibility', 'off');
+>           legend('Location', 'best');
+>   
+>   
+>           subplot(2,2,3);
+>           plot(freq, STFT_hamm(1:nfft/2+1) ...
+>               , 'DisplayName', sprintf("%d", framelength));
+>   ```
+>
+>   Note that for audio lines that do not need a legend, we should turn the `'HandleVisibility'` property off. 
 
 
 - **Result and Analysis:**
-  
-    <img src="./assets/image-20250320110017355.png" alt="image-20250320110017355" style="zoom:50%;" />
 
-    <img src="./assets/image-20250320110038375.png" alt="image-20250320110038375" style="zoom:50%;" />
+    <img src="./assets/image-20250325170240998.png" alt="image-20250325170240998" style="zoom:50%;" />
 
-    <img src="./assets/image-20250320110108435.png" alt="image-20250320110108435" style="zoom:50%;" />
-    
-    - Observations
+    <img src="./assets/image-20250325170320567.png" alt="image-20250325170320567" style="zoom:50%;" />
 
-      - **Different window types do not change zero-crossing rate**, because they do not alter the sign of any sample.
-      - Magnitude and Energy analysis are alike in shape, however the **energy analhysis are more spiky.**
-      - The **magnitude analysis result overall have smaller values** than energy analysis because most values in the original waveform are smaller than 1 and the squaring operation suppresses the values. 
+-  Observations
+
+    - **Window Length:** windows with larger length have better frequency solution. However, it will sacrifice temporal solution because more samples are required for longer windows.
+    - **Window Type:** spectrum processed with rectangular window is more "spiky". It indicates a better resolution, however also show that the processed signal suffers from high-frequency noise retained or introduced by side-lobe leakage. Conversely, Hamming window introduces less sidelobe leakage, sacrificing resolution.
+
     
-      <img src="./assets/image-20250320110921000.png" alt="image-20250320110921000" style="zoom:33%;" />
-    
-      
 
 
 ---
@@ -236,15 +220,12 @@ For each L number, we call the STA function and store its return values into cor
 
 ## Conclusion
 
-Several short-time methods can be utilized to analyze the patterns of speech signals, including short-time energy, short-time magnitude, and short-time zero crossing rate. 
+Short-time spectrum analysis is an important approach used to analyse speech signals. The general methodology is segmenting original signal into frames, and do short-time fourier transform on those frames. It can effectively capture the information included in the chonologic patterns of a speech signal. 
 
-- **Short-Time Energy** measures the amplitude variation within a segmented portion of a speech signal, computed by summing the squared amplitudes of samples in a window. 
-- **Short-Time Magnitude** simplifies energy calculation by summing the absolute values of signal amplitudes within a window instead of squaring them. It is mostly alike the short-time energy analysis, but it is less sensitive to sudden amplitude spikes than short-time energy.
-- **Short-Time Zero Crossing Rate (ZCR)** quantifies the rate at which the signal crosses the zero amplitude axis within a window. High ZCR values correspond to **high-frequency components**, such as unvoiced fricatives (/f/, /sh/) or noise, while low ZCR values indicate low-frequency voiced sounds (e.g., vowels).
+Different aspects can affect the analysis. In this assignment, we discussed two main elements: the window length and the window type. To summarize in one sentence, every selection is a tradeoff. 
 
-Different windows functions can affect the result of the analysis:
+- window size: If you want to have better temporal solution, you would sacrifice spectral solution for it. 
+- window type: If you want better resolution, you would sacrifice worse sidelobe leaks values for it. 
 
-- Windows with larger lengths would result in bigger amplitude, however will act as lowpass filter and lose high-frequency components in signals. 
-- Windows with smaller lengths would result in smaller amplitude, however retains high frequency components better.
-- Window type do not change zero-crossing rate. However window length would, in a similar manner as previously mentioned.
+
 
