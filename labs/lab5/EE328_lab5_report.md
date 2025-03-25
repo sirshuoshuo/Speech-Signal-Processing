@@ -177,37 +177,165 @@ We are required to show the effects of window duration on the short-time analysi
 
 - **Key code segment:**
 
-
+> We  first do some regular process, including reading the audio file and resampling it.
 ```matlab
-L = [51, 101, 201, 401];
-[aud, fs] = audioread('test_16k.wav');
+% read file
+[y, fs] = audioread(filename);
 
-energy_results = cell(1, length(L));
-magnitude_results = cell(1, length(L));
-zero_crossing_results = cell(1, length(L));
-time_results = cell(1, length(L));
-```
-
- We store corresponding results in cell arrays. The characteristics of cell arrays enable us to store vectors with different sizes together. 
-
-```matlab
-for i = 1:length(L)
-    L_i = L(i);
-    R = floor(L_i / 2); % to make sure R is an integer
-    win = rectwin(L_i);
-    [waveform, energy, magnitude, zero_crossing, time] = STA(aud, fs, R, win);
-
-    energy_results{i} = energy;
-    magnitude_results{i} = magnitude;
-    zero_crossing_results{i} = zero_crossing;
-    time_results{i} = time;    
+% resample
+if resamplerate ~= 0
+    y_new = resample(y, resamplerate, fs);
+    fs = resamplerate;
+else
+    y_new = y;
 end
 ```
 
-For each L number, we call the STA function and store its return values into corresponding positions of the cell arrays.
+> Then in wideband analysis, several parameters are set and the spectrogram is calculated. Notablly, we set the dynamic range of the color map and a different choices for plotting colored map, gray map or both.
+```matlab
+% wideband spectrogram
+Lwide = windowlengths(1) * fs * 1e-3;   % window length
+FFTwide = FFTlengths(1) * fs * 1e-3;   % FFT length
+win_wide = hamming(Lwide);
+nfft = FFTwide;
+noverlap = 0.5 * Lwide;   % window shift
+[s_wide, w_wide, t_wide] = spectrogram(y_new, win_wide, noverlap,nfft, fs);
+% log or linear
+if magscale == "linear"
+    W = abs(s_wide);
+else
+    W = mag2db(abs(s_wide));
+end
+% dynamic range
+min_color = -100
+max_color = max(W(:))
+k = -(range+min_color-max_color)./2
+min_new = min_color+k
+max_new = max_color-k
+
+% plot
+if color == 1
+    figure;
+    imagesc(t_wide, w_wide, W);
+    set(gca, 'YDir', 'normal');
+    colorbar;
+    caxis([min_new, max_new]);
+    axis xy;
+    xlabel('time'), ylabel('frequency')
+    title(sprintf('wideband, window Length = %d', Lwide));
+    colormap('gray')
+    
+elseif color == 2
+    figure;
+    imagesc(t_wide, w_wide, W);
+    set(gca, 'YDir', 'normal');
+    colorbar;
+    caxis([min_new, max_new]);
+    axis xy;
+    xlabel('time'), ylabel('frequency')
+    title(sprintf('wideband, window Length = %d', Lwide));
+    colormap('parula')
+    
+else 
+    figure;
+    imagesc(t_wide, w_wide, W);
+    set(gca, 'YDir', 'normal');
+    colorbar;
+    caxis([min_new, max_new]);
+    axis xy;
+    xlabel('time'), ylabel('frequency')
+    title(sprintf('wideband, window Length = %d', Lwide));
+    colormap('gray');
+    
+    figure;
+    imagesc(t_wide, w_wide, W);
+    set(gca, 'YDir', 'normal');
+    colorbar;
+    caxis([min_new, max_new]);
+    axis xy;
+    xlabel('time'), ylabel('frequency')
+    title(sprintf('wideband, window Length = %d', Lwide));
+    colormap('parula')
+end
+```
+
+ > The same goes for narrowband analysis, where we set different parameters and plot the spectrogram., only to change the window length and FFTlength if needed.
+
+```matlab
+% narrowband spectrogram
+Lnarrow = windowlengths(2) * fs * 1e-3;
+FFTnarrow = FFTlengths(2);
+win_narrow = hamming(Lnarrow);
+nfft_narrow = FFTnarrow;
+noverlap_narrow = 0.5 * Lnarrow;   % window shift
+[s_narrow, w_narrow, t_narrow] = spectrogram(y_new, win_narrow,noverlap_narrow, nfft_narrow, fs);
+% log or linear
+if magscale == "linear"
+    W = abs(s_narrow);
+else
+    W = mag2db(abs(s_narrow));
+end
+% dynamic range
+min_color = -100;
+max_color = max(W(:)) 
+k = -(range+min_color-max_color)./2
+min_new = min_color+k
+max_new = max_color-k
+% plot
+if color == 1
+    figure;
+    imagesc(t_narrow, w_narrow, W);
+    set(gca, 'YDir', 'normal');
+    colorbar;
+    caxis([min_new, max_new]);
+    axis xy;
+    xlabel('time'), ylabel('frequency')
+    title(sprintf('narrowband, window Length = %d', Lnarrow));
+    colormap('gray')
+    
+elseif color == 2
+    figure;
+    imagesc(t_narrow, w_narrow, W);
+    set(gca, 'YDir', 'normal');
+    colorbar;
+    caxis([min_new, max_new]);
+    axis xy;
+    xlabel('time'), ylabel('frequency')
+    title(sprintf('narrowband, window Length = %d', Lnarrow));
+    colormap('parula')
+    
+else 
+    figure;
+    imagesc(t_narrow, w_narrow, W);
+    set(gca, 'YDir', 'normal');
+    colorbar;
+    caxis([min_new, max_new]);
+    axis xy;
+    xlabel('time'), ylabel('frequency')
+    title(sprintf('narrowband, window Length = %d', Lnarrow));
+    colormap('gray');
+    
+    figure
+    figure;
+    imagesc(t_narrow, w_narrow, W);
+    set(gca, 'YDir', 'normal');
+    colorbar;
+    caxis([min_new, max_new]);
+    axis xy;
+    xlabel('time'), ylabel('frequency')
+    title(sprintf('narrowband, window Length = %d', Lnarrow));
+    colormap('parula')
+end  
+```
+note: parameter `color`:1 for gray; 2 for color; 3 for both
 
 
 - **Result and Aanalysis:**
+
+    + Test for given number in the pdf
+
+
+    + Test for self-defined parameters
 
 ![image-20250319231517754](./assets/image-20250319231517754.png)
 
