@@ -166,13 +166,10 @@ Write a MATLAB program to perform short-time spectral analysis on a single frame
     - **Window Type:** spectrum processed with rectangular window is more "spiky". It indicates a better resolution, however also show that the processed signal suffers from high-frequency noise retained or introduced by side-lobe leakage. Conversely, Hamming window introduces less sidelobe leakage, sacrificing resolution.
 
     
-
-
 ---
 ## Problem 3
 - **Problem description:**
-
-We are required to show the effects of window duration on the short-time analysis of energy, magnitude, and zero crossings. Specifically, we will use frame lengths of 51, 101, 201, 401 samples, and use a rectangular window. We will continue to utilize the `STA` function we wrote in problem 2.
+Despite using `fft` to process a frame of audio, it's also important to understand the differences between wideband and narrowband spectrum. In the part, a function is required to plot the wideband and narrowaband spectrum in different given parameters. By comparing its differences, more details of the audio signal can be revealed.
 
 
 - **Key code segment:**
@@ -332,18 +329,52 @@ note: parameter `color`:1 for gray; 2 for color; 3 for both
 
 - **Result and Aanalysis:**
 
-    + Test for given number in the pdf
+> Test for given parameters in the pdf
+<table>
+  <tr>
+    <td><img src="./assets/P3-1-1.png" alt="origin"></td>
+    <td><img src="./assets/P3-1-2.png" alt="origin"></td>
+  </tr>
+  <tr>
+    <td><img src="./assets/P3-1-3.png" alt="origin"></td>
+    <td><img src="./assets/P3-1-4.png" alt="origin"></td>
+  </tr>
+</table>
+
+> Test for resampling rate changes(use wideband as default)
+
+<div style="display: flex; gap: 10px;">
+  <img src="./assets/P3-2-1.png" alt="origin" style="width: 33%;">
+  <img src="./assets/P3-2-2.png" alt="origin" style="width: 33%;">
+  <img src="./assets/P3-2-3.png" alt="origin" style="width: 33%;">
+</div>
 
 
-    + Test for self-defined parameters
+> Test for window length changes(use wideband as default)
+<div style="display: flex; gap: 10px;">
+  <img src="./assets/P3-3-1.png" alt="图1" style="width: 33.33%;">
+  <img src="./assets/P3-3-2.png" alt="图2" style="width: 33.33%;">
+  <img src="./assets/P3-3-3.png" alt="图3" style="width: 33.33%;">
+</div>
 
-![image-20250319231517754](./assets/image-20250319231517754.png)
 
-1. The **shape of curves are consistent** throughout the changes of L. 
-2. As shown in the magnitude and the energy plots, windows with **greater length** tend to have **bigger values** because they naturally include more signals. 
-3. However windows with greater lengths **act like low-pass filters** and will lose high-frequency changes when compared with windows with smaller sizes.
-4. In the ZC plot, because the calculating method takes average values across each window, **the magnitude of different curves remain consistent.** Also we can observe that **windows with greater length filters out high-frequency changes**, while windows with shorter lengths retain them. 
+> Test for nfft changes(use wideband as default)
+<div style="display: flex; gap: 10px;">
+  <img src="./assets/P3-4-1.png" alt="图片1" style="width: 50%;">
+  <img src="./assets/P3-4-2.png" alt="图片2" style="width: 50%;">
+</div>
 
+
+> Test for "linear" plot(others are log plot by default)
+<div style="display: flex; gap: 10px;">
+  <img src="./assets/P3-5-1.png" alt="图片1" style="width: 50%;">
+  <img src="./assets/P3-5-2.png" alt="图片2" style="width: 50%;">
+</div>
+
+1. Wideband and narrowband analysis: wideabnd and narrowband represents the length of window in time domain. A longer window means a lower resolution ratio in time domain and a higher resolution ratio in freq. domian. This explains why in *narrowband plot*, the spectrum is vertical overall and in *wideband plot* the spectrum is horizontal overall.  
+2. Resampling rate analysis: the resampling rate affects the window length directly(more or less points in each frame), causing the same phonmenon mentioned above. Moreover, the higher the sampling rate is, the wider the range of frequencies can be analyzed, and more high-frequency details can be retained.
+3. `nfft` analysis: `nfft` represent the number of points in `FFT` process. The nfft (number of FFT points) does not directly affect the frequency resolution, but a higher nfft makes it easier to observe formants and results in a smoother spectrogram. Conversely, a smaller nfft produces a coarser spectrogram."
+4. "log" and "linear" analysis: the last comparision is about the plot type difference. In *linear plot*, the energy is enenly distributed and as we can see the spectrum is less obvious. However.
 ---
 
 ## Conclusion
