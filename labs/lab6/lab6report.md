@@ -4,7 +4,7 @@
 
 ---
 ## Introduction
-In this lab course, we learned a new method to analysis signals called cepstrum. Intuitively, cepstrum is the *frequency response of the frequency domain*, which is used to saparate two signals doing convolution. This method will be used further in speech siganl processing and analysis, and in this lab problems are designed for us to understand its basic principles and test it on several expample siganls. 
+In this lab course, we learned a new method to analysis signals called cepstrum. Intuitively, cepstrum is the *frequency response of the frequency domain*, which is used to separate two signals doing convolution. This method will be used further in speech siganl processing and analysis, and in this lab problems are designed for us to understand its basic principles and test it on several expample siganls. 
 
 ---
 
@@ -17,7 +17,7 @@ Write a MATLAB program(function) to compute the real and complex cepstrum of a g
 
 1. Understanding Cepstrum
 
-Cepstrum is used to deconvlute siganls. For example, voice is sound from the vocal track, which can be viewed as a concolution of the vocal channel and the voice siganl, and cepstrum can help to deconcolute these two. The method can be ilusstarted by the following diagram:
+Cepstrum is used to deconvlute siganls. For example, voice is sound from the vocal track, which can be viewed as a convolution of the vocal channel and the voice siganl, and cepstrum can help to deconvolute these two. The method can be illustrated by the following diagram:
 ![image-20250325151138643](./assets/cep_principle.png)
 
 `fft()` in step1 is to convert convolution to multiply. And take the logarithm in step2 is to convert multiply in step1 to addition. And finally use `ifft()` to finish the cepstrum analysis.
@@ -66,12 +66,12 @@ function [ccepstrum, rcepstrum] = Cepstrum(y, nfft)
     ccepstrum = real(ifft(ccepstrum));
 end
 ```
-  
+
 
 - **Result and Analysis:**
 
 ![P1](./assets/P1.png)
-As we can see in the result, the real cepstrum is symmetry and its x-axis have the same unit as the origin signal. Also, at the begining and the end of the signal, the siganl's frqeuency response shows more periodicity.
+As we can see in the result, the real cepstrum is symmetric and its x-axis have the same unit as the origin signal. Also, at the begining and the end of the signal, the siganl's frqeuency response shows more periodicity.
 
 ---
 
@@ -122,23 +122,23 @@ saveas(gcf, "D:/作业提交/大三 下/语音信号处理/lab6/P2_16_c.png", 'p
 - **Result and Analysis:**
   + Real ceptsrum
     <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-  <img src="./assets/P2_1_r.png" style="width: 23%;">
-  <img src="./assets/P2_2_r.png" style="width: 23%;">
-  <img src="./assets/P2_3_r.png" style="width: 23%;">
-  <img src="./assets/P2_4_r.png" style="width: 23%;">
-  <img src="./assets/P2_5_r.png" style="width: 23%;">
-  <img src="./assets/P2_6_r.png" style="width: 23%;">
-  <img src="./assets/P2_7_r.png" style="width: 23%;">
-  <img src="./assets/P2_8_r.png" style="width: 23%;">
-  <img src="./assets/P2_9_r.png" style="width: 23%;">
-  <img src="./assets/P2_10_r.png" style="width: 23%;">
-  <img src="./assets/P2_11_r.png" style="width: 23%;">
-  <img src="./assets/P2_12_r.png" style="width: 23%;">
-  <img src="./assets/P2_13_r.png" style="width: 23%;">
-  <img src="./assets/P2_14_r.png" style="width: 23%;">
-  <img src="./assets/P2_15_r.png" style="width: 23%;">
-  <img src="./assets/P2_16_r.png" style="width: 23%;">
-</div>
+    <img src="./assets/P2_1_r.png" style="width: 23%;">
+    <img src="./assets/P2_2_r.png" style="width: 23%;">
+    <img src="./assets/P2_3_r.png" style="width: 23%;">
+    <img src="./assets/P2_4_r.png" style="width: 23%;">
+    <img src="./assets/P2_5_r.png" style="width: 23%;">
+    <img src="./assets/P2_6_r.png" style="width: 23%;">
+    <img src="./assets/P2_7_r.png" style="width: 23%;">
+    <img src="./assets/P2_8_r.png" style="width: 23%;">
+    <img src="./assets/P2_9_r.png" style="width: 23%;">
+    <img src="./assets/P2_10_r.png" style="width: 23%;">
+    <img src="./assets/P2_11_r.png" style="width: 23%;">
+    <img src="./assets/P2_12_r.png" style="width: 23%;">
+    <img src="./assets/P2_13_r.png" style="width: 23%;">
+    <img src="./assets/P2_14_r.png" style="width: 23%;">
+    <img src="./assets/P2_15_r.png" style="width: 23%;">
+    <img src="./assets/P2_16_r.png" style="width: 23%;">
+    </div>
 
   + Complex cepstrum
       <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
@@ -158,7 +158,7 @@ saveas(gcf, "D:/作业提交/大三 下/语音信号处理/lab6/P2_16_c.png", 'p
     <img src="./assets/P2_14_c.png" style="width: 23%;">
     <img src="./assets/P2_15_c.png" style="width: 23%;">
     <img src="./assets/P2_16_c.png" style="width: 23%;">
-  </div>
+      </div>
 
 -  Observations
 
@@ -170,221 +170,66 @@ saveas(gcf, "D:/作业提交/大三 下/语音信号处理/lab6/P2_16_c.png", 'p
 ---
 ## Problem 3
 - **Problem description:**
-Despite using `fft` to process a frame of audio, it's also important to understand the differences between wideband and narrowband spectrum. In the part, a function is required to plot the wideband and narrowaband spectrum in different given parameters. By comparing its differences, more details of the audio signal can be revealed.
+This task requires us to compute the complex and real cepstra for a section of voiced and a section of unvoiced speech. We are required to plot the signal, the log magnitude spectrum, the real cepstrum, and a low quefrency liftered log magnitude spectrum. 
 
 - **Key code segment:**
 
-> We  first do some regular process, including reading the audio file and resampling it.
-```matlab
-% read file
-[y, fs] = audioread(filename);
+> ```matlab
+> [aud, fs] = audioread("test_16k.wav");
+> 
+> t = ( 1:400 )' / fs;
+> voiced = aud(13000:13399);
+> unvoiced = aud(3400:3799);
+> 
+> hamm = hamming(400); % Hamming window of length 400
+> voiced = voiced .* hamm;
+> unvoiced = unvoiced .* hamm;
+> 
+> voiced_padd = [voiced; zeros(512-length(voiced), 1)];
+> unvoiced_padd = [unvoiced; zeros(512-length(unvoiced), 1)];
+> 
+> voiced_Spec = fft(voiced_padd, 512); % FFT of voiced signal
+> unvoiced_Spec = fft(unvoiced_padd, 512); % FFT of unvoiced signal
+> 
+> voiced_Spec = log(abs(voiced_Spec)); % Logarithm of the magnitude spectrum
+> unvoiced_Spec = log(abs(unvoiced_Spec)); % Logarithm of the magnitude spectrum
+> 
+> [voiced_ccep, voiced_rcep] = Cepstrum(voiced_padd, 512); % 512 is the closese 2^n to 400
+> [unvoiced_ccep, unvoiced_rcep] = Cepstrum(unvoiced_padd, 512); % 512 is the closese 2^n to 400
+> 
+> ```
+>
+> We select the audio segments as specified in the pdf, zero padds the signals to nearest 2^n and calculates the log spectrum by using fft. The real and complex cepstrum are calculated by reusing the Cepstrum function we wrote earlier. 
+>
+> ```matlab
+> cutoff = 30; % cut-off quefrency
+> lifter = [ones(cutoff,1); zeros(512-cutoff,1)]; 
+> 
+> voiced_liftered = voiced_rcep .* lifter; % Liftered cepstrum of voiced signal
+> unvoiced_liftered = unvoiced_rcep .* lifter; % Liftered cepstrum of unvoiced signal
+> 
+> voiced_liftered_spectrum = abs(fft(voiced_liftered, 512)); % Liftered cepstrum to spectrum of voiced signal
+> unvoiced_liftered_spectrum = abs(fft(unvoiced_liftered, 512)); % Liftered cepstrum to spectrum of unvoiced signal
+> ```
+>
+> We used a rectangular window of length=30 on the cepstrum to do the liftering. After this, we convert it back into log magnitude spectrum by using fft and taking absolute value.
+- **Results and Analysis:**
 
-% resample;=[l[llpp[p]]]
-if resamplerate ~= 0
-    y_new = resample(y, resamplerate, fs);
-    fs = resamplerate;
-else
-    y_new = y;
-end
-```
+![image-20250408201812296](./assets/image-20250408201812296.png)
 
-> Then in wideband analysis, several parameters are set and the spectrogram is calculated. Notablly, we set the dynamic range of the color map and a different choices for plotting colored map, gray map or both.
-```matlab
-% wideband spectrogram
-Lwide = windowlengths(1) * fs * 1e-3;   % window length
-FFTwide = FFTlengths(1) * fs * 1e-3;   % FFT length
-win_wide = hamming(Lwide);
-nfft = FFTwide;
-noverlap = 0.5 * Lwide;   % window shift
-[s_wide, w_wide, t_wide] = spectrogram(y_new, win_wide, noverlap,nfft, fs);
-% log or linear
-if magscale == "linear"
-    W = abs(s_wide);
-else
-    W = mag2db(abs(s_wide));
-end
-% dynamic range
-min_color = -100
-max_color = max(W(:))
-k = -(range+min_color-max_color)./2
-min_new = min_color+k
-max_new = max_color-k
+![image-20250408201823303](./assets/image-20250408201823303.png)
 
-% plot
-if color == 1
-    figure;
-    imagesc(t_wide, w_wide, W);
-    set(gca, 'YDir', 'normal');
-    colorbar;
-    caxis([min_new, max_new]);
-    axis xy;
-    xlabel('time'), ylabel('frequency')
-    title(sprintf('wideband, window Length = %d', Lwide));
-    colormap('gray')
-    
-elseif color == 2
-    figure;
-    imagesc(t_wide, w_wide, W);
-    set(gca, 'YDir', 'normal');
-    colorbar;
-    caxis([min_new, max_new]);
-    axis xy;
-    xlabel('time'), ylabel('frequency')
-    title(sprintf('wideband, window Length = %d', Lwide));
-    colormap('parula')
-    
-else 
-    figure;
-    imagesc(t_wide, w_wide, W);
-    set(gca, 'YDir', 'normal');
-    colorbar;
-    caxis([min_new, max_new]);
-    axis xy;
-    xlabel('time'), ylabel('frequency')
-    title(sprintf('wideband, window Length = %d', Lwide));
-    colormap('gray');
-    
-    figure;
-    imagesc(t_wide, w_wide, W);
-    set(gca, 'YDir', 'normal');
-    colorbar;
-    caxis([min_new, max_new]);
-    axis xy;
-    xlabel('time'), ylabel('frequency')
-    title(sprintf('wideband, window Length = %d', Lwide));
-    colormap('parula')
-end
-```
+For the unvoiced signal, the spectrum is relatively "messy", not displaying dominant frequencies. The cepstrum is spiky and no prominent peaks can be seen. After liftering, the spectrum is smoothed, although there are still little observable regular shapes in its envelope. 
 
- > The same goes for narrowband analysis, where we set different parameters and plot the spectrogram., only to change the window length and FFTlength if needed.
-
-```matlab
-% narrowband spectrogram
-Lnarrow = windowlengths(2) * fs * 1e-3;
-FFTnarrow = FFTlengths(2);
-win_narrow = hamming(Lnarrow);
-nfft_narrow = FFTnarrow;
-noverlap_narrow = 0.5 * Lnarrow;   % window shift
-[s_narrow, w_narrow, t_narrow] = spectrogram(y_new, win_narrow,noverlap_narrow, nfft_narrow, fs);
-% log or linear
-if magscale == "linear"
-    W = abs(s_narrow);
-else
-    W = mag2db(abs(s_narrow));
-end
-% dynamic range
-min_color = -100;
-max_color = max(W(:)) 
-k = -(range+min_color-max_color)./2
-min_new = min_color+k
-max_new = max_color-k
-% plot
-if color == 1
-    figure;
-    imagesc(t_narrow, w_narrow, W);
-    set(gca, 'YDir', 'normal');
-    colorbar;
-    caxis([min_new, max_new]);
-    axis xy;
-    xlabel('time'), ylabel('frequency')
-    title(sprintf('narrowband, window Length = %d', Lnarrow));
-    colormap('gray')
-    
-elseif color == 2
-    figure;
-    imagesc(t_narrow, w_narrow, W);
-    set(gca, 'YDir', 'normal');
-    colorbar;
-    caxis([min_new, max_new]);
-    axis xy;
-    xlabel('time'), ylabel('frequency')
-    title(sprintf('narrowband, window Length = %d', Lnarrow));
-    colormap('parula')
-    
-else 
-    figure;
-    imagesc(t_narrow, w_narrow, W);
-    set(gca, 'YDir', 'normal');
-    colorbar;
-    caxis([min_new, max_new]);
-    axis xy;
-    xlabel('time'), ylabel('frequency')
-    title(sprintf('narrowband, window Length = %d', Lnarrow));
-    colormap('gray');
-    
-    figure
-    figure;
-    imagesc(t_narrow, w_narrow, W);
-    set(gca, 'YDir', 'normal');
-    colorbar;
-    caxis([min_new, max_new]);
-    axis xy;
-    xlabel('time'), ylabel('frequency')
-    title(sprintf('narrowband, window Length = %d', Lnarrow));
-    colormap('parula')
-end  
-```
-note: parameter `color`:1 for gray; 2 for color; 3 for both
+In the spectrum of the voiced signal, multiple peaks can be observed. They are likely the resonant peaks. In the cepstrum, at about 10 and 150 samples, peaks can be observed. After liftering, the consonant waves of the voiced signals are displayed more smoothly. 
 
 
-- **Result and Aanalysis:**
 
-> Test for given parameters in the pdf
-<table>
-  <tr>
-    <td><img src="./assets/P3-1-1.png" alt="origin"></td>
-    <td><img src="./assets/P3-1-2.png" alt="origin"></td>
-  </tr>
-  <tr>
-    <td><img src="./assets/P3-1-3.png" alt="origin"></td>
-    <td><img src="./assets/P3-1-4.png" alt="origin"></td>
-  </tr>
-</table>
-
-> Test for resampling rate changes(use wideband as default)
-
-<div style="display: flex; gap: 10px;">
-  <img src="./assets/P3-2-1.png" alt="origin" style="width: 33%;">
-  <img src="./assets/P3-2-2.png" alt="origin" style="width: 33%;">
-  <img src="./assets/P3-2-3.png" alt="origin" style="width: 33%;">
-</div>
-
-
-> Test for window length changes(use wideband as default)
-<div style="display: flex; gap: 10px;">
-  <img src="./assets/P3-3-1.png" alt="图1" style="width: 33.33%;">
-  <img src="./assets/P3-3-2.png" alt="图2" style="width: 33.33%;">
-  <img src="./assets/P3-3-3.png" alt="图3" style="width: 33.33%;">
-</div>
-
-
-> Test for nfft changes(use wideband as default)
-<div style="display: flex; gap: 10px;">
-  <img src="./assets/P3-4-1.png" alt="图片1" style="width: 50%;">
-  <img src="./assets/P3-4-2.png" alt="图片2" style="width: 50%;">
-</div>
-
-
-> Test for "linear" plot(others are log plot by default)
-<div style="display: flex; gap: 10px;">
-  <img src="./assets/P3-5-1.png" alt="图片1" style="width: 50%;">
-  <img src="./assets/P3-5-2.png" alt="图片2" style="width: 50%;">
-</div>
-
-1. Wideband and narrowband analysis: wideabnd and narrowband represents the length of window in time domain. A longer window means a lower resolution ratio in time domain and a higher resolution ratio in freq. domian. This explains why in *narrowband plot*, the spectrum is vertical overall and in *wideband plot* the spectrum is horizontal overall.  
-2. Resampling rate analysis: the resampling rate affects the window length directly(more or less points in each frame), causing the same phonmenon mentioned above. Moreover, the higher the sampling rate is, the wider the range of frequencies can be analyzed, and more high-frequency details can be retained.
-3. `nfft` analysis: `nfft` represent the number of points in `FFT` process. The nfft (number of FFT points) does not directly affect the frequency resolution, but a higher nfft makes it easier to observe formants and results in a smoother spectrogram. Conversely, a smaller nfft produces a coarser spectrogram."
-4. "log" and "linear" analysis: the last comparision is about the plot type difference. In *linear plot*, the energy is enenly distributed and as we can see the spectrum is less obvious. However.
 ---
 
 ## Conclusion
 
-Short-time spectrum analysis is an important approach used to analyse speech signals. The general methodology is segmenting original signal into frames, and do short-time fourier transform on those frames. It can effectively capture the information included in the chonologic patterns of a speech signal. 
-
-Different aspects can affect the analysis. In this assignment, we discussed two main elements: the window length and the window type. To summarize in one sentence, every selection is a tradeoff. 
-
-- window size: If you want to have better temporal solution, you would sacrifice spectral solution for it. 
-- window type: If you want better resolution, you would sacrifice worse sidelobe leaks values for it. 
+In this lab, we have learned the basic principles of cepstrum and its applications in speech signal processing. We also learned how to use MATLAB to implement the algorithm and visualize the results. The results show that cepstrum can effectively separate the excitation source and the vocal tract response, which is useful for further analysis and processing of speech signals. We also learned how to use liftering to smooth the cepstrum and obtain a more interpretable spectrum. Overall, this lab has deepened our understanding of cepstrum and its applications in speech signal processing.
 
 
 
