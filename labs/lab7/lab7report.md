@@ -11,7 +11,7 @@ In this lab course, we learn to analyse speech signal using Linear Predictive An
 ## Problem 1
 ### **Problem description:** 
 
-Develop a MATLAB program to perform Linear Predictive Coding (LPC) analysis on a specified frame of speech and display the following results:
+Develop a MATLAB program to perform LPC analysis on a specified frame of speech and display the following results:
 
 1. Original Speech Signal: Plot the original speech signal for the specified frame.
 
@@ -269,7 +269,6 @@ Because the analysis needs sample points before the first sample point of a fram
 
 ## Conclusion
 
-In this lab, we have learned the basic principles of LPC, which is a useful method to predict the properties of differnt speech signals.
-
+This lab mainly focus on the LPC method by extractinig LPC coefficients and residule error. By using this new kind of method, we can better captures vocal tract formants while the error spectrum represents the excitation source. The results show that our code is very effective and can be used in further signal processing tasks.
 
 
