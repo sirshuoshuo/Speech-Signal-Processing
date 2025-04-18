@@ -47,7 +47,10 @@ for i = 1:num_frames
 end
 
 reconstructed_signal = zeros(length(aud),1);
+residual_sum = zeros(length(aud), 1);
+prediction = zeros(length(aud),1);
 count = zeros(length(aud), 1);
+
 
 for i = 1:num_frames
     % 计算当前帧在原信号中的位置
@@ -61,13 +64,11 @@ for i = 1:num_frames
         
         % 将重构帧添加到重构信号
         reconstructed_signal(start_idx:end_idx) = reconstructed_signal(start_idx:end_idx) + frame_reconstruction;
+        residual_sum(start_idx:end_idx) = residual_sum(start_idx:end_idx) + residual(:, i);
+        prediction(start_idx:end_idx) = prediction(start_idx:end_idx) + est_frames(:, i);
         count(start_idx:end_idx) = count(start_idx:end_idx) + 1;
     end
 end
-
-% 对重叠区域进行归一化
-idx = count > 0;
-reconstructed_signal(idx) = reconstructed_signal(idx) ./ count(idx);
 
 
 figure;

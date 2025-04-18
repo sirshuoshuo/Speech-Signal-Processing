@@ -4,7 +4,7 @@
 
 ---
 ## Introduction
-In this lab course, we learn to analyse speech signal using Linear Predictive Analysis(LPA). 
+In this lab course, we learn to analyse speech signal using Linear Predictive Analysis(LPA). This approach focuses on using a set of past samples to predict the current speech sample by a linear combination. This approach regards the vocal tract as a time-varying FIR filter, and the actual voice being a stimulus signal passed through the filter. LPA is useful to various speech signal processing tasks such as encoding, compression, feature extraction and speech synthesis. 
 
 ---
 
@@ -78,81 +78,125 @@ As we can see in the result, the real cepstrum is symmetric and its x-axis have 
 ## Problem 2
 - **Problem description:** 
 
-  In this problem, we are required to write a program to perform and compare the results of multiple cepstrum. A new signal $\alpha^nu[n]$ is given and we need to test different parameters and verify its effects. 
+  In this problem, we are required to write a MATLAB program to analyze a speech signal using LPC analysis methods, extract the error signal, and then use the error sinal to do exact reconstruction of the original speech file. At the end of the program, we should also plot the original speech signal, the error signal, and the resynthesized speech signal. 
 
 
 - **Solution and process**:
 
-1. Same as problem1, we need to calculate both the real and the complex cepstrum of the given siganl.
+1. We first cut the original speech signal in to frames with specified length and overlap values. A hanning window is added to the frames to prevent spectral leakage. Also, the overlapped summation of the window's response should be equal to a constant value, which could be set by using the 'periodic' parameter. 
 
-2. Change the parameters and compare the results.
+1. For every frame, we use the self-correlation approach to solve for the linear prediction coefficients. 
+
+1. Use formula $ \hat{s}(n)=\sum_{k = 1}^{p}a_{k}s(n - k) $ to predict the samples of frames using the calculated linear prediction coefficients. 
+
+1. To achieve perfect reconstruction, do an addition of predicted signal and the error. 
+   $$
+   s(n)=\hat{s}(n)+e(n)=\sum_{k = 1}^{p}a_{k}s(n - k)+e(n)
+   $$
+
 
 
 - **Key code segment:**
 
->1. We first define differnet parameters and then input the parameters in the function to do the follow up calculation.
+1. We first define differnet parameters and cut the original waveform into frames using the buffer() function provided in MATLAB. 
 
 ```matlab
-clc, clear
-% parameters, change for different cases
-a = 0.9;   % 0.5, 0.9
-N = 200;   % 10, 200
-nfft = 256;   % 10, 16, 200, 256
-n = 0:N-1;
-y = a.^n .* (n>=0);
-% real cepstrum
-Y = fft(y, nfft);
-Y_log = log(abs(Y));
-Y_cep = ifft(Y_log);
+[aud, fs] = audioread('s5.wav');
+lpc_size = 320;
+lpc_shift = 80;
+lpc_order = 12;
 
-figure;
-stem(0:length(Y_cep)-1, Y_cep), title('a=0.9, N=200, nfft=256'), xlabel('samples')
-saveas(gcf, "D:/作业提交/大三 下/语音信号处理/lab6/P2_16_r.png", 'png')
+% 确保aud是列向量
+aud = aud(:);
 
-% complex cepstrum
-phase = unwrap(angle(Y));
-Y_ccep = Y_log + 1i*phase;
-Y_ccep = ifft(Y_ccep);
-figure
-stem(0:length(Y_ccep)-1, Y_ccep), title('a=0.5, N=200, nfft=256'), xlabel('samples')
-saveas(gcf, "D:/作业提交/大三 下/语音信号处理/lab6/P2_16_c.png", 'png')
+% 使用buffer函数将信号分帧
+y = buffer(aud, lpc_size, lpc_size - lpc_shift, 'nodelay'); % 320x297
+num_frames = size(y, 2); % 一共有297帧
+
+% 创建汉宁窗
+hann_win = hann(lpc_size, "periodic"); % 帧长度为320
+
+% 初始化变量
+est_frames = zeros(lpc_size, num_frames); % 复原后的帧
+residual = zeros(lpc_size, num_frames);   % 残差
+a_coeffs = zeros(num_frames, lpc_order + 1); 
 ```
 
 
+
+2. Then for every frame, we take its self correlation and use levinson method to calculate LPC. 
+
+```matlab
+history_buffer = zeros(lpc_order, 1); % 初始化历史缓冲区
+
+for i = 1:num_frames
+    frame = y(:, i); % 当前帧, 320x1
+    % 对当前帧加窗
+    windowed_frame = frame .* hann_win; % 320x1
+
+    R = xcorr(windowed_frame, lpc_order, 'unbiased'); % 计算自相关
+    R = R(lpc_order + 1:end); % 取出自相关系数, 13x1
+    R = R(:); % 确保是列向量
+    % 计算LPC系数
+    [a_coeffs(i, :), ~] = levinson(R, lpc_order); % 1x13
+
+    extended_frame = [history_buffer; frame];
+
+    pred_signal = filter([0 -a_coeffs(i, 2:end)], 1, extended_frame);
+    
+    % 只取当前帧部分的预测结果
+    est_frames(:, i) = pred_signal(lpc_order+1:end);
+    
+    % 计算残差
+    residual(:, i) = frame - est_frames(:, i);
+    
+    % 更新历史缓冲区用于下一帧
+    history_buffer = frame(end-lpc_order+1:end);
+
+end
+```
+
+Because the analysis needs sample points before the first sample point of a frame, we utilize a historical buffer (which is all zeros for the first frame) to store those previous samples. For every frame, we also calculate the predicted signal by using a filter function with LPC coefficient input. The error $e[n]$ (which is named residual in the code) is then calculated by subtracting the original signal with the estimated frames. 
+
+3. To achieve perfect reconstruction, we add up the reconstructed signal and the error vector.
+
+   ```matlab
+   reconstructed_signal = zeros(length(aud),1);
+   residual_sum = zeros(length(aud), 1);
+   count = zeros(length(aud), 1);
+   
+   for i = 1:num_frames
+       % 计算当前帧在原信号中的位置
+       start_idx = (i-1) * lpc_shift + 1;
+       end_idx = start_idx + lpc_size - 1;
+       
+       if end_idx <= length(reconstructed_signal)
+           % 结合预测信号和残差来重构原始信号
+           % s(n) = 预测信号 + 残差
+           frame_reconstruction = est_frames(:,i) + residual(:,i);
+           
+           % 将重构帧添加到重构信号
+           reconstructed_signal(start_idx:end_idx) = reconstructed_signal(start_idx:end_idx) + frame_reconstruction;
+           residual_sum(start_idx:end_idx) = residual_sum(start_idx:end_idx) + residual(:, i);
+           count(start_idx:end_idx) = count(start_idx:end_idx) + 1;
+       end
+   end
+   ```
+
+
+
+
 - **Result and Analysis:**
-  + Real ceptsrum
-    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-    <img src="./assets/P2_1_r.png" style="width: 23%;">
-    <img src="./assets/P2_2_r.png" style="width: 23%;">
-    <img src="./assets/P2_3_r.png" style="width: 23%;">
-    <img src="./assets/P2_4_r.png" style="width: 23%;">
-    <img src="./assets/P2_5_r.png" style="width: 23%;">
-    <img src="./assets/P2_6_r.png" style="width: 23%;">
-    <img src="./assets/P2_7_r.png" style="width: 23%;">
-    <img src="./assets/P2_8_r.png" style="width: 23%;">
-    <img src="./assets/P2_9_r.png" style="width: 23%;">
-    <img src="./assets/P2_10_r.png" style="width: 23%;">
-    <img src="./assets/P2_11_r.png" style="width: 23%;">
-    <img src="./assets/P2_12_r.png" style="width: 23%;">
-    <img src="./assets/P2_13_r.png" style="width: 23%;">
-    <img src="./assets/P2_14_r.png" style="width: 23%;">
-    <img src="./assets/P2_15_r.png" style="width: 23%;">
-    <img src="./assets/P2_16_r.png" style="width: 23%;">
-    </div>
 
-  + Complex cepstrum
-      
+    ![image-20250418120455602](C:\Users\LiZy\AppData\Roaming\Typora\typora-user-images\image-20250418120455602.png)
+
+- Observations
+
+    - As shown in the figure, the reconstruction process is successful..
+    - The sound of perfectly reconstructed speech is identical with the original signal. This proves that LPA successfully separates the vocal tract frequency response and the error(stimulus signals).
+    - The error signal sounds hissy, resembling the stimulus fed through the vocal tracts, i.e. the airflow from the lungs. We can still understand speech from the residual signal. 
     
-  
--  Observations
-
-    - **N:** N is the length of the given siganl, when the signal length grow longer, a larger nfft is required theoretically.
-    - **nfft:** the number of `fft()` specifies the accuracy of the cepstrum. when nfft is larger than N, the quefrency performs much more precise. However, when nfft is smaller than N, the signal is truncated and shows less details.
-    - **a:** The parameter a directly change the expression of the signal, and as we can see the difference clearly in the result.
-
     
-
-
 
 ---
 
