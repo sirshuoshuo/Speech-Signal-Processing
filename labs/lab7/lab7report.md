@@ -158,7 +158,7 @@ saveas(gcf, "D:/作业提交/大三 下/语音信号处理/lab6/P2_16_c.png", 'p
 
 ## Conclusion
 
-In this lab, we have learned the basic principles of cepstrum and its applications in speech signal processing. We also learned how to use MATLAB to implement the algorithm and visualize the results. The results show that cepstrum can effectively separate the excitation source and the vocal tract response, which is useful for further analysis and processing of speech signals. We also learned how to use liftering to smooth the cepstrum and obtain a more interpretable spectrum. Overall, this lab has deepened our understanding of cepstrum and its applications in speech signal processing.
+In this lab, we have learned the basic principles of LPC, which is a useful method to predict the properties of differnt speech signals.
 
 
 
