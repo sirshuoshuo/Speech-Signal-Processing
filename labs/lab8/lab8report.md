@@ -249,6 +249,7 @@ Because the analysis needs sample points before the first sample point of a fram
        end
    end
    ```
+  
 
 
 
@@ -264,12 +265,152 @@ Because the analysis needs sample points before the first sample point of a fram
     - The error signal sounds hissy, resembling the stimulus fed through the vocal tracts, i.e. the airflow from the lungs. We can still understand speech from the residual signal. 
     
     
+---
+
+## Problem 3
+### **Problem description:** 
+
+Develop a MATLAB function to derive the pitch period(frequency) and confidence score with the requirements:
+
+1. nfft of `fft` is specified as 4000.
+
+2. To avoid repitation in a small period of time, set the cepstrum around the primary pitch as 0.
+
+3. Expand the pitch index by comparing adjascent pitch magnitude and set as the same value if the difference is less than 10%
+
+4. The rest requirments is the same to problem2
+
+### **Solutions and process** 
+1. Process Overvirw
+The overall idea of this method is using the cepstrum to find the repetitiveness in the frequency. As shown in the function, pitch frequency $f_0$ is the samllest component in the harmonic wave. By deriving the "frquency domain of frequeny domain", we can generally find the pitch period.
+
+$$
+harmonic(f) = \delta(f-f_0) + \delta(f-2f_0) + ... + \delta(f-nf_0)
+$$
+The following is the detailed process.
+
+- **Signal Preprocessing**  
+   - Resample the signal and cut it in frames.
+   - Use `hamming` window to preprocess the signal.
+
+- **Cepstrum Analysis**  
+   - Set query range acorrding to the gendedr and find the cepstrum of each frame.
+   - Find the primary pitch and secondary pitch in the cepstrum.
+
+- **Reliable Range**  
+   - Expand the range acorrding to the requirements. 
+   - Smooth the pitch period vector.   
+
+
+### Key Code Segments  
+The following is a few segments in a whole function `PitchDetector_Cepstrum` along with a test code.
+####  1. Resample and preprocess
+```matlab
+% 重采样
+    Fs = 10000;
+    s = resample(s, Fs, fs);
+    nfft = 4000;
+
+    if gender == 1
+        nlow = 40;
+        nhigh = 167;
+%         nlow = Fs/200;
+%         nhigh = Fs/75;
+    elseif gender == 0
+        nlow = 28;
+        nhigh = 67;
+    end
+    
+    % 分帧
+    frame_length = 400;  
+    frame_shift = 100;   
+    nframe = floor((length(s) - frame_length)/frame_shift) + 1;
+    primary_pitch = zeros(1, nframe);
+    secondary_pitch = zeros(1, nframe);
+    pitch_period = zeros(1, nframe);
+    confidence = zeros(1, nframe);
+    pthrl = 4;
+```    
+
+#### 2. Cepstrum Analysis
+```matlab
+% 倒谱分析
+    for i=1:nframe
+        begin = (i-1)*frame_shift + 1;
+        frame = s(begin:begin+frame_length-1);
+        frame = frame .* hamming(length(frame));
+        
+        % 取倒谱
+        min_sample = round(Fs/nhigh);
+        max_sample = round(Fs/nlow);
+        spectrum = fft(frame, nfft);
+        cepstrum = abs(real(ifft(log(abs(spectrum) + eps))));
+        cepstrum = cepstrum(min_sample:max_sample)   % 限定查找范围
+        
+        % 取两个主峰
+        [p1, pd1] = max(cepstrum)   % 第一峰，取绝对值
+        zero_range = max(1,pd1-4):min(length(s), pd1+4);
+        primary_pitch(i) = p1;
+        cepstrum(zero_range) = 0;
+        [p2, pd2] = max(cepstrum)   % 第二峰
+        secondary_pitch(i) = p2;
+        p1/p2;
+        cepstrum;
+        
+        % 判断reliable区域
+        if p1/p2 > pthrl
+%             pitch_period(i) = (pd2+pd1)/2;
+            pitch_period(i) = pd1;
+            confidence(i) = p1/p2;
+        else
+            pitch_period(i) = 0;   % 不可靠帧
+        end
+    end   % end for
+    
+    
+    % 扩展区域
+    for i=2:nframe-1
+        if pitch_period(i-1)~=0 && abs((pitch_period(i)-pitch_period(i-1))) < 0.1   % 向后拓展
+            pitch_period(i-1) = pitch_period(i);
+        end
+        if pitch_period(i+1)~=0 && abs((pitch_period(i+1)-pitch_period(i))) < 0.1   % 向前扩展
+            pitch_period(i+1) = pitch_period(i);
+        end
+    end
+    
+    % 平滑处理
+    pitch_period_smooth = MedianSmoother(pitch_period, 5);
+    confidence_smooth = MedianSmoother(confidence, 5);
+``` 
+Here, we use the function `MedianSmooth` derived in problem1.
+
+#### 3. Test and Run
+```matlab
+[y, fs] = audioread('s6.wav');
+figure
+plot(y)
+gender = 1;
+[pitch_period, confidence] = PitchDetector_Cepstrum(y, fs, gender);
+pitch_period
+confidence;
+% pitch = 1./pitch_period
+
+figure
+subplot(211), plot(2.5*pitch_period), ylabel('Pitch-Period'), xlabel('frame-number')
+subplot(212), plot(confidence), ylabel('Condifence'), xlabel('frame-number')
+```
+
+### Results and Observation
+
+![P1](./assets/P3.png)
+As we can see in the result, the cepstrum method sucessfully estimate the pitch period of the speech. The audio is a male voice and this trais make sense according to the result. 
+
+![origin](./assets/P3_orginal.png)
+Also, as we can see in the original speech, there are maily six segments in the speech. As we can see in the result, there's also six pitch period.Additionally, since we set the threshold of p1/p1 as 4, the confidence score are all more larger than 4.
 
 ---
 
 ## Conclusion
 
-In this lab, we have learned the basic principles of LPC, which is a useful method to predict the properties of differnt speech signals.
-
-
+In the process of estimating pitch period(frequency), two methods are used in this trail. Generally, the cross-correlation method focus on the repetitiveness in time-domain and the cepstrum method focus on the same traits in the frequency-domain. As shown in the results, both methods can estimate the pitch frequency, and each sentence have differnet pitch due to the emotion. But for a specific gender, their pitch frequency is roughly the same.
 
