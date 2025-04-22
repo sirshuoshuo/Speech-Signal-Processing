@@ -255,7 +255,7 @@ Because the analysis needs sample points before the first sample point of a fram
 
 - **Result and Analysis:**
 
-    ![image-20250418120455602](C:\Users\LiZy\AppData\Roaming\Typora\typora-user-images\image-20250418120455602.png)
+    ![image-20250418120455602](./asset/P2.png)
 
 - Observations
 
