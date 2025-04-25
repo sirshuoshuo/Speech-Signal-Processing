@@ -1,5 +1,6 @@
 function y = MedianSmoother(x, L)
 %MEDIANSMOOTHER 给出窗长度为L的中值滤波
+x = reshape(x, 1, length(x));
 
 padding_length = floor(L/2);
 x_padded = [ones(1, padding_length)*x(1), x, ones(1, padding_length)*x(end)];
