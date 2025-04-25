@@ -6,11 +6,11 @@ function [pitch_vector, confidence_vector, unfilt_pitch, unfilt_conf] = PitchDet
 fsout = 10000;
 
 y = resample(aud, fsout, fs);
-y = y/max(abs(y));
+% y = y/max(abs(y));
 
-Filt_task1 = load("Filt_task1.mat", "-mat").Filt_task1;
+Filt_task2 = load("Filt_task2.mat", "-mat").Filt_task2;
 
-y_filt = filter(Filt_task1, 1, y);
+y_filt = filter(Filt_task2, 1, y);
 
 if ~exist("task2_aud", "dir")
     mkdir("task2_aud")
