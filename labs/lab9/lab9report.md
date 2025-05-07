@@ -149,150 +149,197 @@ Female's spectrum is much lesser compared to male compatriot around 3000HZ, but 
 ## Problem 2
 - **Problem description:** 
 
-  In this problem, we are required to write a program to perform and compare the results of multiple cepstrum. A new signal $\alpha^nu[n]$ is given and we need to test different parameters and verify its effects. 
+  In this problem, we are required to utilize matlab function `X=fxquant(s, bits, rmode, lmode)` to quantize signals using 10, 8 and 4 bits, and compare the influences of different quantization bits and modes on speech signal. Moreover, we will compare the power spectrum of noise sequences, and compare the results to the white noise assumption. 
 
 
 - **Solution and process**:
 
-1. Same as problem1, we need to calculate both the real and the complex cepstrum of the given siganl.
+1. We will use 4 bits to quantize a slope from -1 to 1 to discuss the influence of truncation and rounding quantization mode. 
 
-2. Change the parameters and compare the results.
+2. Next we will apply the quantizing function on speech samples, and compare the quantization error with different numbers of bits for the quantizer. We will then draw histograms of the quantization noise samples, and compare those plots with white noise model. 
+
+3. At last we calculate the spectra of corresponding noise sequences, and compare them with the original unquantized speech samples. 
 
 
 - **Key code segment:**
 
->1. We first define differnet parameters and then input the parameters in the function to do the follow up calculation.
+1. We will use `xin = -1:0.001:1;` to create the slope, and use different quantizing mode on the slope. The error is calculated by subtracting the quantized signal from the original slope.
+
 
 ```matlab
-clc, clear
-% parameters, change for different cases
-a = 0.9;   % 0.5, 0.9
-N = 200;   % 10, 200
-nfft = 256;   % 10, 16, 200, 256
-n = 0:N-1;
-y = a.^n .* (n>=0);
-% real cepstrum
-Y = fft(y, nfft);
-Y_log = log(abs(Y));
-Y_cep = ifft(Y_log);
+xin = -1:0.001:1;
+
+X_round = fxquant(xin, 4, 'round', 'sat');
+X_trunc = fxquant(xin, 4, 'trunc', 'sat');
+
+e_round_abs = abs(X_round - xin);
+e_trunc_abs = abs(X_trunc - xin);
+
+e_round = X_round - xin;
+e_trunc = X_trunc - xin;
+
+% Find the range of quantization errors
+max_e_round = max(e_round);
+min_e_round = min(e_round);
+max_e_trunc = max(e_trunc);
+min_e_trunc = min(e_trunc);
+
+fprintf('Rounding error range: [%f, %f]\n', min_e_round, max_e_round);
+fprintf('Truncation error range: [%f, %f]\n', min_e_trunc, max_e_trunc);
+
+% First figure: Quantization input-output
+figure;
+subplot(2,1,1);
+plot(xin, X_round, 'b-', 'LineWidth', 1.5);
+title('Rounding Quantization');
+xlabel('Input'); ylabel('Output');
+grid on;
+
+subplot(2,1,2);
+plot(xin, X_trunc, 'r-', 'LineWidth', 1.5);
+title('Truncation Quantization');
+xlabel('Input'); ylabel('Output');
+grid on;
+
+% Second figure: Quantization errors
+figure;
+subplot(2,1,1);
+plot(xin, e_round, 'b-', 'LineWidth', 1.5);
+title('Rounding Quantization Error');
+xlabel('Input'); ylabel('Absolute Error');
+grid on;
+
+subplot(2,1,2);
+plot(xin, e_trunc, 'r-', 'LineWidth', 1.5);
+title('Truncation Quantization Error');
+xlabel('Input'); ylabel('Absolute Error');
+grid on;
+```
+
+2. 10 bits, 8 bits and 4 bits are used on the audio signal. We then create figures to draw plots using `strips()` function.
+
+```matlab
+[aud, fs] = audioread('s5.wav');
+
+aud = aud(1300:18800);
+
+aud_quant_10bits = fxquant(aud, 10, 'round', 'sat');
+aud_quant_8bits = fxquant(aud, 8, 'round', 'sat');
+aud_quant_4bits = fxquant(aud, 4, 'round', 'sat');
+
+err_quant_10bits = aud_quant_10bits - aud;
+err_quant_8bits = aud_quant_8bits - aud;
+err_quant_4bits = aud_quant_4bits - aud;
+
+% Plot the error sequences using strips
+figure;
+subplot(3,1,1);
+strips(err_quant_10bits(1:8000), 2000);
+title('10-bit Quantization Error');
+ylabel('Error');
+grid on;
+
+....
+
+```
+
+Histograms are calculated as below:
+
+```matlab
+figure
+subplot(3,1,1);
+histogram(err_quant_10bits, 50);
+title('10-bit Quantization Error Histogram');
+xlabel('Error Value'); ylabel('Frequency');
+grid on;
+
+....
+```
+
+3. The spectra of the quantized signal and orignal samples are calculated using `pspectrum` function as shown below:
+
+```matlab
+[err_pxx_10bits, f] = pspectrum(err_quant_10bits);
+[err_pxx_8bits, f] = pspectrum(err_quant_8bits);
+[err_pxx_4bits, f] = pspectrum(err_quant_4bits);
 
 figure;
-stem(0:length(Y_cep)-1, Y_cep), title('a=0.9, N=200, nfft=256'), xlabel('samples')
-saveas(gcf, "D:/作业提交/大三 下/语音信号处理/lab6/P2_16_r.png", 'png')
+subplot(3,1,1);
+plot(f, 10*log10(err_pxx_10bits));
+title('10-bit Quantization Error Power Spectrum');
+xlabel('Frequency (Hz)'); ylabel('Power/Frequency (dB/Hz)');
+grid on;
 
-% complex cepstrum
-phase = unwrap(angle(Y));
-Y_ccep = Y_log + 1i*phase;
-Y_ccep = ifft(Y_ccep);
-figure
-stem(0:length(Y_ccep)-1, Y_ccep), title('a=0.5, N=200, nfft=256'), xlabel('samples')
-saveas(gcf, "D:/作业提交/大三 下/语音信号处理/lab6/P2_16_c.png", 'png')
+...
+
+[speech_pxx, f] = pspectrum(aud);
+
+figure;
+plot(f, 10*log10(speech_pxx), 'k-', 'LineWidth', 2, 'DisplayName', 'Original');
+hold on;
+plot(f, 10*log10(err_pxx_10bits), 'b-', 'DisplayName', '10-bit');
+plot(f, 10*log10(err_pxx_8bits), 'r-', 'DisplayName', '8-bit');
+plot(f, 10*log10(err_pxx_4bits), 'g-', 'DisplayName', '4-bit');
+title('Speech and Quantization Error Power Spectra');
+xlabel('Frequency (Hz)');
+ylabel('Power/Frequency (dB/Hz)');
+grid on;
+legend('show');
+hold off;
 ```
 
 
+
+
 - **Result and Analysis:**
-  + Real ceptsrum
-    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-    <img src="./assets/P2_1_r.png" style="width: 23%;">
-    <img src="./assets/P2_2_r.png" style="width: 23%;">
-    <img src="./assets/P2_3_r.png" style="width: 23%;">
-    <img src="./assets/P2_4_r.png" style="width: 23%;">
-    <img src="./assets/P2_5_r.png" style="width: 23%;">
-    <img src="./assets/P2_6_r.png" style="width: 23%;">
-    <img src="./assets/P2_7_r.png" style="width: 23%;">
-    <img src="./assets/P2_8_r.png" style="width: 23%;">
-    <img src="./assets/P2_9_r.png" style="width: 23%;">
-    <img src="./assets/P2_10_r.png" style="width: 23%;">
-    <img src="./assets/P2_11_r.png" style="width: 23%;">
-    <img src="./assets/P2_12_r.png" style="width: 23%;">
-    <img src="./assets/P2_13_r.png" style="width: 23%;">
-    <img src="./assets/P2_14_r.png" style="width: 23%;">
-    <img src="./assets/P2_15_r.png" style="width: 23%;">
-    <img src="./assets/P2_16_r.png" style="width: 23%;">
-    </div>
+  1. Task 1
 
-  + Complex cepstrum
-      <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-    <img src="./assets/P2_1_c.png" style="width: 23%;">
-    <img src="./assets/P2_2_c.png" style="width: 23%;">
-    <img src="./assets/P2_3_c.png" style="width: 23%;">
-    <img src="./assets/P2_4_c.png" style="width: 23%;">
-    <img src="./assets/P2_5_c.png" style="width: 23%;">
-    <img src="./assets/P2_6_c.png" style="width: 23%;">
-    <img src="./assets/P2_7_c.png" style="width: 23%;">
-    <img src="./assets/P2_8_c.png" style="width: 23%;">
-    <img src="./assets/P2_9_c.png" style="width: 23%;">
-    <img src="./assets/P2_10_c.png" style="width: 23%;">
-    <img src="./assets/P2_11_c.png" style="width: 23%;">
-    <img src="./assets/P2_12_c.png" style="width: 23%;">
-    <img src="./assets/P2_13_c.png" style="width: 23%;">
-    <img src="./assets/P2_14_c.png" style="width: 23%;">
-    <img src="./assets/P2_15_c.png" style="width: 23%;">
-    <img src="./assets/P2_16_c.png" style="width: 23%;">
-      </div>
+<div style="display: flex; gap: 10px;">
+  <img src="./assets/image-20250507214514217.png" width="49%" />
+  <img src="./assets/image-20250507214529100.png" width="49%" />
+</div>
 
--  Observations
+```
+Rounding error range: [-0.125000, 0.062000]
+Truncation error range: [-0.125000, 0.000000]
+```
 
-    - **N:** N is the length of the given siganl, when the signal length grow longer, a larger nfft is required theoretically.
-    - **nfft:** the number of `fft()` specifies the accuracy of the cepstrum. when nfft is larger than N, the quefrency performs much more precise. However, when nfft is smaller than N, the signal is truncated and shows less details.
-    - **a:** The parameter a directly change the expression of the signal, and as we can see the difference clearly in the result.
+The range of truncation error is [-0.125000, 0.000000],  while the randing quantization error is typically [-0.062, 0.062]. The extreme value at input = 1 is caused by overflow.
 
-    
----
-## Problem 3
-- **Problem description:**
-This task requires us to compute the complex and real cepstra for a section of voiced and a section of unvoiced speech. We are required to plot the signal, the log magnitude spectrum, the real cepstrum, and a low quefrency liftered log magnitude spectrum. 
+2. Task 2
 
-- **Key code segment:**
+<img src="./assets/image-20250507215237698.png" alt="image-20250507215237698" style="zoom:50%;" />
 
-> ```matlab
-> [aud, fs] = audioread("test_16k.wav");
-> 
-> t = ( 1:400 )' / fs;
-> voiced = aud(13000:13399);
-> unvoiced = aud(3400:3799);
-> 
-> hamm = hamming(400); % Hamming window of length 400
-> voiced = voiced .* hamm;
-> unvoiced = unvoiced .* hamm;
-> 
-> voiced_padd = [voiced; zeros(512-length(voiced), 1)];
-> unvoiced_padd = [unvoiced; zeros(512-length(unvoiced), 1)];
-> 
-> voiced_Spec = fft(voiced_padd, 512); % FFT of voiced signal
-> unvoiced_Spec = fft(unvoiced_padd, 512); % FFT of unvoiced signal
-> 
-> voiced_Spec = log(abs(voiced_Spec)); % Logarithm of the magnitude spectrum
-> unvoiced_Spec = log(abs(unvoiced_Spec)); % Logarithm of the magnitude spectrum
-> 
-> [voiced_ccep, voiced_rcep] = Cepstrum(voiced_padd, 512); % 512 is the closese 2^n to 400
-> [unvoiced_ccep, unvoiced_rcep] = Cepstrum(unvoiced_padd, 512); % 512 is the closese 2^n to 400
-> 
-> ```
->
-> We select the audio segments as specified in the pdf, zero padds the signals to nearest 2^n and calculates the log spectrum by using fft. The real and complex cepstrum are calculated by reusing the Cepstrum function we wrote earlier. 
->
-> ```matlab
-> cutoff = 30; % cut-off quefrency
-> lifter = [ones(cutoff,1); zeros(512-cutoff,1)]; 
-> 
-> voiced_liftered = voiced_rcep .* lifter; % Liftered cepstrum of voiced signal
-> unvoiced_liftered = unvoiced_rcep .* lifter; % Liftered cepstrum of unvoiced signal
-> 
-> voiced_liftered_spectrum = abs(fft(voiced_liftered, 512)); % Liftered cepstrum to spectrum of voiced signal
-> unvoiced_liftered_spectrum = abs(fft(unvoiced_liftered, 512)); % Liftered cepstrum to spectrum of unvoiced signal
-> ```
->
-> We used a rectangular window of length=30 on the cepstrum to do the liftering. After this, we convert it back into log magnitude spectrum by using fft and taking absolute value.
-- **Results and Analysis:**
+The error sequence of 10-bit quantization is mostly like white noise, but there are sections in other two quantized signals that resemble or are completly the same as the original waveform. This is because some values are discarded because original signal is too small or too large (overflow).
 
-![image-20250408201812296](./assets/image-20250408201812296.png)
+<img src="./assets/image-20250507215536326.png" alt="image-20250507215536326" style="zoom:50%;" />
 
-![image-20250408201823303](./assets/image-20250408201823303.png)
+Histogram show that the less bits we use to quantize signal, the further away the histogram is to white noise (even distribution).
 
-For the unvoiced signal, the spectrum is relatively "messy", not displaying dominant frequencies. The cepstrum is spiky and no prominent peaks can be seen. After liftering, the spectrum is smoothed, although there are still little observable regular shapes in its envelope. 
+3. Task 3
 
-In the spectrum of the voiced signal, multiple peaks can be observed. They are likely the resonant peaks. In the cepstrum, at about 10 and 150 samples, peaks can be observed. After liftering, the consonant waves of the voiced signals are displayed more smoothly. 
+<div style="display: flex; gap: 10px; align-items: center;">
+  <img src="./assets/image-20250507215729444.png" width="49%" />
+  <img src="./assets/image-20250507215748614.png" width="49%" style="object-fit: contain;" />
+</div>
+Three spectra all resemble the spectra of white noise, although 4-bit quantization spectrum have some observable low-frequency components. Also, the noise level of 4-bit quantization error is at the same level as the original signal, signifying observable distortion. 
+
+```
+Mean Power in dB for 10-bit: -92.194162
+Mean Power in dB for 8-bit: -80.286735
+```
+
+The difference of error level is about 12dB for 8 bits and 10 bits.
+
+
+- Observations
+
+
+With more bits used in quantization, the quantization error can be reduced, and the overall distribution of quantization noise will more closely resemble that of a white noise. 
+
+With too few bits for quantization, significant distortions will be introduced, including nonlinear distortion, increased quantization noise, and loss of signal fidelity, which can degrade the performance of the system and reduce the accuracy of subsequent processing or analysis.
+
+
 
 
 
@@ -300,6 +347,9 @@ In the spectrum of the voiced signal, multiple peaks can be observed. They are l
 
 ## Conclusion
 
-Yet to finish
+This lab explored speech signal statistics and quantization effects using different bit depths. Key findings include:
 
+1. Concatenated speech files showed amplitude distributions resembling Gamma or Laplace distributions, with frequency components concentrated between 500Hz and 4000Hz. Female voices exhibited lower spectral values around 3000Hz but higher ones near 3500Hz, aligning with their higher pitch.
+2. Increasing the bit depth from 4 to 10 bits significantly reduced quantization errors and made noise distribution more similar to white noise. Conversely, fewer bits led to notable distortions, including increased noise and loss of fidelity, particularly evident in 4-bit quantization where noise levels approached those of the original signal.
 
+In conclusion, selecting an appropriate bit depth is crucial for balancing system performance and data accuracy in practical applications. 

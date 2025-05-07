@@ -131,3 +131,18 @@ mean_power_db_8bits = mean(10*log10(err_pxx_8bits));
 
 fprintf('Mean Power in dB for 10-bit: %f\n', mean_power_db_10bits);
 fprintf('Mean Power in dB for 8-bit: %f\n', mean_power_db_8bits);
+
+[speech_pxx, f] = pspectrum(aud);
+
+figure;
+plot(f, 10*log10(speech_pxx), 'k-', 'LineWidth', 2, 'DisplayName', 'Original');
+hold on;
+plot(f, 10*log10(err_pxx_10bits), 'b-', 'DisplayName', '10-bit');
+plot(f, 10*log10(err_pxx_8bits), 'r-', 'DisplayName', '8-bit');
+plot(f, 10*log10(err_pxx_4bits), 'g-', 'DisplayName', '4-bit');
+title('Speech and Quantization Error Power Spectra');
+xlabel('Frequency (Hz)');
+ylabel('Power/Frequency (dB/Hz)');
+grid on;
+legend('show');
+hold off;

@@ -24,7 +24,7 @@ This lab course mainly focus on $\mu$-law quantization and adaptive quantization
 2. Follow the steps shown in the figure, first calculate the amplitude, and then recover the sign by multplying `sign(y)`
 ![mulaw](./asset/mulaw.png)
 3. First calculate yhat using MATLAB function `fxquant()`, then calculate the error spctrum using `pspect()` 
-![muquan](./asset/mu_quan.png)
+   ![muquan](./asset/mu_quan.png)
 
    
 
@@ -254,63 +254,110 @@ legend(legend_labels, 'Location', 'southwest');
 3. For Uniform quantization:
 - The SNR degrades sharply as the signal amplitude decreases (due to higher quantization errors for small signals).
 -  Approximately ~12 bits are required to match the dynamic range of 6-bit μ-law quantization.
-![haha](./asset/P2_a.png)
-    
+   ![haha](./asset/P2_a.png)
+   
 ---
 ## Problem 3
 - **Problem description:**
-This task requires us to compute the complex and real cepstra for a section of voiced and a section of unvoiced speech. We are required to plot the signal, the log magnitude spectrum, the real cepstrum, and a low quefrency liftered log magnitude spectrum. 
+This exercise focuses on demonstrating the process of adaptive quantization using both IIR and FIR filters. The task involves processing a given speech file, s5.wav, and calculating the standard deviation σ[n] of the signal. 
+- **Solution and Process:**
+
+As the expressions of filters are already given, the coefficients for FIR and IIR are determined. We will use those coefficients and the `filter` function to calculate the deviation, and at last use those calculated deviation values to equalize signals. 
+
+Effects of different parameters (alpha and M) will be discussed. 
 
 - **Key code segment:**
 
-> ```matlab
-> [aud, fs] = audioread("test_16k.wav");
-> 
-> t = ( 1:400 )' / fs;
-> voiced = aud(13000:13399);
-> unvoiced = aud(3400:3799);
-> 
-> hamm = hamming(400); % Hamming window of length 400
-> voiced = voiced .* hamm;
-> unvoiced = unvoiced .* hamm;
-> 
-> voiced_padd = [voiced; zeros(512-length(voiced), 1)];
-> unvoiced_padd = [unvoiced; zeros(512-length(unvoiced), 1)];
-> 
-> voiced_Spec = fft(voiced_padd, 512); % FFT of voiced signal
-> unvoiced_Spec = fft(unvoiced_padd, 512); % FFT of unvoiced signal
-> 
-> voiced_Spec = log(abs(voiced_Spec)); % Logarithm of the magnitude spectrum
-> unvoiced_Spec = log(abs(unvoiced_Spec)); % Logarithm of the magnitude spectrum
-> 
-> [voiced_ccep, voiced_rcep] = Cepstrum(voiced_padd, 512); % 512 is the closese 2^n to 400
-> [unvoiced_ccep, unvoiced_rcep] = Cepstrum(unvoiced_padd, 512); % 512 is the closese 2^n to 400
-> 
-> ```
->
-> We select the audio segments as specified in the pdf, zero padds the signals to nearest 2^n and calculates the log spectrum by using fft. The real and complex cepstrum are calculated by reusing the Cepstrum function we wrote earlier. 
->
-> ```matlab
-> cutoff = 30; % cut-off quefrency
-> lifter = [ones(cutoff,1); zeros(512-cutoff,1)]; 
-> 
-> voiced_liftered = voiced_rcep .* lifter; % Liftered cepstrum of voiced signal
-> unvoiced_liftered = unvoiced_rcep .* lifter; % Liftered cepstrum of unvoiced signal
-> 
-> voiced_liftered_spectrum = abs(fft(voiced_liftered, 512)); % Liftered cepstrum to spectrum of voiced signal
-> unvoiced_liftered_spectrum = abs(fft(unvoiced_liftered, 512)); % Liftered cepstrum to spectrum of unvoiced signal
-> ```
->
-> We used a rectangular window of length=30 on the cepstrum to do the liftering. After this, we convert it back into log magnitude spectrum by using fft and taking absolute value.
+1. The IIR filters are designed using b and a coefficients, and applied using `filter()`. Be careful that the input here is squared audio signal. 
+
+```matlab
+alpha_1 = 0.9;
+alpha_2 = 0.99;
+
+b_1 = [0 (1-alpha_1)];
+b_2 = [0 (1-alpha_2)];
+a_1 = [1 -alpha_1];
+a_2 = [1 -alpha_2];
+
+[aud, fs] = audioread('s5.wav');
+aud = aud - mean(aud);
+aud_squared = aud.^2;
+
+delta_1 = sqrt(filter(b_1, a_1, aud_squared));
+delta_2 = sqrt(filter(b_2, a_2, aud_squared));
+
+gain_equalized_1 = aud ./ delta_1;
+gain_equalized_2 = aud ./ delta_2;
+```
+
+Superimposed Plots are drawn using `hold on;` command.
+
+```matlab
+figure(3)
+plot(aud(2700:6700));
+title('S5 Original Signal');
+xlabel('Sample Number'); ylabel('Amplitude');
+```
+
+original waveform is drawn for comparison. 
+
+2. FIR filter is designed using a similar manner. 
+
+```matlab
+M_1 = 10;
+M_2 = 100;
+
+b_fir_1 = ones(1, M_1) / M_1;
+b_fir_2 = ones(1, M_2) / M_2;
+
+delta_fir_1 = sqrt(filter(b_fir_1, 1, aud_squared));
+delta_fir_2 = sqrt(filter(b_fir_2, 1, aud_squared));
+
+gain_equalized_fir_1 = aud ./ delta_fir_1;
+gain_equalized_fir_2 = aud ./ delta_fir_2;
+```
+
+```matlab
+figure(4)
+subplot(2,1,1);
+plot(aud_squared(2700:6700)); hold on;
+plot(delta_fir_1(2700:6700), 'r'); hold off;
+title('S5 Squared Signal and FIR Delta 1');
+xlabel('Sample Number'); ylabel('Amplitude');
+grid on;
+
+subplot(2,1,2);
+plot(gain_equalized_fir_1(2700:6700));
+title('S5 Gain Equalized FIR Signal 1');
+xlabel('Sample Number'); ylabel('Amplitude');
+grid on;
+
+...
+```
+
+
+
 - **Results and Analysis:**
 
-![image-20250408201812296](./assets/image-20250408201812296.png)
+<img src="./assets/image-20250507221758098.png" alt="image-20250507221758098" style="zoom:50%;" />
 
-![image-20250408201823303](./assets/image-20250408201823303.png)
+<div style="display: flex; gap: 10px; align-items: flex-start;">
+  <img src="./assets/image-20250507222047884.png" width="50%" style="object-fit: contain;"/>
+  <img src="./assets/image-20250507222059463.png" width="50%" style="object-fit: contain;"/>
+</div>
 
-For the unvoiced signal, the spectrum is relatively "messy", not displaying dominant frequencies. The cepstrum is spiky and no prominent peaks can be seen. After liftering, the spectrum is smoothed, although there are still little observable regular shapes in its envelope. 
+Delta 1 corresponds to alpha=0.9, and delta 2 corresponds to alpha=0.99.
 
-In the spectrum of the voiced signal, multiple peaks can be observed. They are likely the resonant peaks. In the cepstrum, at about 10 and 150 samples, peaks can be observed. After liftering, the consonant waves of the voiced signals are displayed more smoothly. 
+Here alpha=0.9 have a larger rate of adapting to the changing speech level. The overall level of the signal is equalize to approximately the same, although in x=2800 there are some abnormalities. On the contrary, the equalizer using alpha=0.99 mostly does compression for large signal levels, and is less sensitive to rapid changes. 
+
+
+<div style="display: flex; justify-content: space-between; gap: 10px;">
+  <img src="./assets/image-20250507222249209.png" style="width: 49%;"/>
+  <img src="./assets/image-20250507222235514.png" style="width: 49%;"/>
+</div>
+The results using FIR is mostly the same, with smaller M corresponding to smaller alpha. 
+
+Also for Delta 2, the deviation is more stable for both the overall waveform and the near-zero initial values. Also, the equalized FIR signal has a bigger amplitude than the IIR equalized signal. 
 
 
 
@@ -318,6 +365,15 @@ In the spectrum of the voiced signal, multiple peaks can be observed. They are l
 
 ## Conclusion
 
-Yet to finish
+In this lab, we explored μ-law quantization and adaptive quantization techniques for speech signals. 
 
+- **μ-Law Quantization**: The process significantly increases the amplitude of small signals, improving encoding accuracy. Our experiments showed that the quantization error decreases as the number of bits increases, with 10-bit quantization closely resembling white noise. The inverse μ-law function was validated, showing minimal reconstruction error.
+
+- **SNR Analysis**: Comparing uniform and μ-law quantization methods, it was observed that for every additional bit in uniform quantization, the SNR improved by approximately 6 dB. In contrast, μ-law quantization maintained relatively stable SNR values across varying signal levels, achieving optimal performance at μ=255, a standard parameter for telephone speech coding.
+
+- **Adaptive Quantization**: Using both IIR and FIR filters to dynamically adjust quantization based on signal characteristics demonstrated that smaller α values (IIR) or M values (FIR) allowed faster adaptation to changes in speech levels. However, larger α or M values provided more stable deviation handling but were less responsive to rapid changes.
+
+  
+
+In summary, μ-law quantization offers significant advantages over static uniform quantization in terms of dynamic range and fidelity, especially for low-amplitude signals. Adaptive quantization techniques further enhance these benefits by adjusting to signal dynamics, ensuring better performance in real-world applications. 
 
